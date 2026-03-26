@@ -1,0 +1,469 @@
+import { ArrowRight, X, Plus, Minus, Heart, MessageCircle, Search, ShoppingBag as ShoppingBagIcon, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import ShoppingBag from "./ShoppingBag";
+import triyanLogoSmall from "@/assets/triyank-logo-small.png";
+import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/data/products";
+
+const Navigation = () => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [offCanvasType, setOffCanvasType] = useState<'favorites' | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isShoppingBagOpen, setIsShoppingBagOpen] = useState(false);
+  const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [expandedWesternCategories, setExpandedWesternCategories] = useState<string[]>([]);
+  const [expandedTraditionalCategories, setExpandedTraditionalCategories] = useState<string[]>([]);
+  const [expandedLeatherCategories, setExpandedLeatherCategories] = useState<string[]>([]);
+  
+  const { cartItems, updateQuantity, totalItems } = useCart();
+
+  const bagItems = cartItems.map(item => ({
+    id: Number(item.id.replace(/\D/g, '')) || Math.random(),
+    name: item.name,
+    price: formatPrice(item.price),
+    image: item.image,
+    quantity: item.quantity,
+    category: item.category,
+  }));
+
+  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+    const cartItem = cartItems.find(item => {
+      const numId = Number(item.id.replace(/\D/g, '')) || 0;
+      return numId === id;
+    });
+    if (cartItem) {
+      updateQuantity(cartItem.id, newQuantity);
+    }
+  };
+
+  const popularSearches = [
+    "Gold Necklaces", "Kundan Jewelry", "Minimalist Rings",
+    "Bridal Sets", "Jhumka Earrings", "Chain Bracelets"
+  ];
+  
+  const navItems = [
+    { 
+      name: "Western", 
+      href: "/collection/western", 
+      submenuItems: [],
+      hasSubcategories: true
+    },
+    { 
+      name: "Traditional", 
+      href: "/collection/traditional", 
+      submenuItems: [],
+      hasSubcategories: true
+    },
+    { 
+      name: "Leather", 
+      href: "/collection/leather", 
+      submenuItems: [],
+      hasSubcategories: true
+    },
+    { name: "About", href: "/about", submenuItems: [] },
+    { name: "Contact Us", href: "/contact", submenuItems: [] },
+  ];
+
+  const westernSubcategories = [
+    { name: "Earrings", items: ["Studs", "Hoops", "Drop", "Ear cuff", "Statement"] },
+    { name: "Necklace", items: ["Chokers", "Pendant Necklace", "Layered Necklace", "Statement Necklace", "Necklace Set", "Neck Cuff"] },
+    { name: "Ring", items: ["Raw Stone", "Adjustable", "Band Rings"] },
+    { name: "Cuffs & Bracelet", items: ["Chain Bracelets", "Cuff Bracelet"] },
+    { name: "Anklets", items: ["Evil Eye Anklets"] },
+    { name: "Hair Accessories", items: ["Head bands", "Scrunchies", "Bow clips", "Hair bands"] }
+  ];
+
+  const traditionalSubcategories = [
+    { name: "Earrings", items: ["Chandbali", "Jhumka", "Hoop", "Studs", "Danglers & Drops", "View all"] },
+    { name: "Necklace", items: ["Choker Set", "Long Set", "Pendant Set", "Handmade Necklace Set", "Chain Pendant Set"] },
+    { name: "Rings", items: ["Adjustable", "Raw Stone", "Fusion", "Kundan", "Jadau"] },
+    { name: "Bangles", items: ["Kada", "Thread Bangles", "Oxidised", "Meenakari", "Anti-Tarnish"] },
+    { name: "Anklets & Toe Ring", items: ["Payal", "Toe Bands", "Nazar Anklet"] },
+    { name: "Hair Accessory", items: ["Clutchers"] }
+  ];
+
+  const leatherSubcategories = [
+    { name: "Earrings", items: ["Leaf & Teardrop", "Tassel Dangles", "Studs", "Laced Earrings", "Bohemian Earrings"] },
+    { name: "Necklace", items: ["Choker", "Neckband", "Pendant Neck", "Tie Neckpiece", "Bohemian Neck"] },
+    { name: "Bracelets", items: ["Wrist band", "Stack Ring", "Beaded", "Bohemian"] },
+    { name: "Hair Accessory", items: ["Hair Barrette", "Hair Ties", "Hair Claw", "Head Band", "Hair Wraps"] }
+  ];
+
+ 
+
+  const categoryMenuItems = [
+    {
+      name: "WESTERN JEWELLERY",
+      subcategories: ["Western Necklaces", "Western Earrings", "Western Bracelets", "Western Rings", "Western Anklets", "Western Hair Accessories"]
+    },
+    {
+      name: "TRADITIONAL JEWELLERY", 
+      subcategories: ["Traditional Necklaces", "Traditional Earrings", "Traditional Bangles", "Traditional Rings", "Traditional Toe Rings", "Traditional Hair Accessories"]
+    },
+    {
+      name: "LEATHER JEWELLERY",
+      subcategories: ["Leather Necklaces", "Leather Earrings", "Leather Bracelets", "Leather Rings", "Leather Anklets", "Leather Hair Accessories"]
+    }
+  ];
+
+  const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent("Hi! I'm interested in Triyank Jewelry.")}`;
+
+  return (
+    <nav className="relative" style={{ backgroundColor: 'rgb(182, 165, 153)' }}>
+      <div className="flex items-center justify-between h-16 px-4 md:px-6">
+        {/* Left: Hamburger + Logo + Brand Name */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Hamburger - visible on ALL screen sizes now */}
+          <button
+            className="p-2 mt-0.5 text-black hover:text-black/70 transition-colors duration-200"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <div className="w-5 h-5 relative">
+              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                isMobileMenuOpen ? 'rotate-45 top-2.5' : 'top-1.5'
+              }`}></span>
+              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 top-2.5 ${
+                isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
+              }`}></span>
+              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
+                isMobileMenuOpen ? '-rotate-45 top-2.5' : 'top-3.5'
+              }`}></span>
+            </div>
+          </button>
+
+          {/* Small Logo */}
+          <Link to="/" className="flex items-center">
+            <img src={triyanLogoSmall} alt="Triyank" className="h-8 w-8 object-contain" />
+          </Link>
+
+          {/* Brand Name - left aligned */}
+          <Link to="/" className="flex items-center">
+            <h1 className="text-lg md:text-2xl mt-1 font-extrabold tracking-[0.28em] text-[#1a1410] drop-shadow-sm">
+              TRIYANK
+            </h1>
+          </Link>
+        </div>
+
+        {/* Center Navigation Menu */}
+        <div className="hidden lg:flex items-center gap-8">
+          <Link 
+            to="/" 
+            className="text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
+          >
+            HOME
+          </Link>
+          <Link 
+            to="/category/new-arrivals" 
+            className="text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
+          >
+            NEW ARRIVALS
+          </Link>
+          
+          {/* SHOP BY CATEGORY with Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsCategoryDropdownOpen(true)}
+            onMouseLeave={() => setIsCategoryDropdownOpen(false)}
+          >
+            <button 
+              className="flex items-center gap-1 text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
+              aria-expanded={isCategoryDropdownOpen}
+              aria-haspopup="true"
+            >
+              SHOP BY CATEGORY
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Dropdown Menu */}
+            {isCategoryDropdownOpen && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[800px] z-50">
+                <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-6">
+                  <div className="grid grid-cols-3 gap-6">
+                    {categoryMenuItems.map((category) => (
+                      <div key={category.name}>
+                        <Link
+                          to={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                          className="block text-sm font-bold text-[#1a1410] hover:text-primary transition-colors duration-200 mb-4 uppercase tracking-wide"
+                        >
+                          {category.name}
+                        </Link>
+                        <div className="space-y-2">
+                          {category.subcategories.map((subcategory) => (
+                            <Link
+                              key={subcategory}
+                              to={`/category/${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                              className="block text-sm text-gray-600 hover:text-[#1a1410] hover:font-medium transition-colors duration-200 py-1"
+                            >
+                              {subcategory}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <Link 
+            to="/category/bestsellers" 
+            className="text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
+          >
+            BESTSELLERS
+          </Link>
+        </div>
+
+        {/* Right icons */}
+        <div className="flex items-center space-x-1 md:space-x-2">
+          {/* WhatsApp */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative p-3 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            aria-label="Chat on WhatsApp"
+          >
+            <svg
+              viewBox="0 0 32 32"
+              className="w-6 h-6 text-white transition-colors duration-300"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M19.11 17.53c-.25-.13-1.47-.72-1.7-.81-.23-.08-.4-.12-.57.13-.16.25-.65.81-.8.98-.15.16-.29.19-.54.06-.25-.13-1.05-.38-2-.1-.74-.2-1.24-1.12-1.39-1.31-.14-.2-.02-.31.1-.44.12-.12.25-.29.38-.44.13-.15.16-.25.25-.41.08-.16.04-.31-.02-.44-.06-.13-.57-1.38-.78-1.9-.2-.48-.41-.41-.57-.42h-.48c-.16 0-.44.06-.67.31-.23.25-.88.86-.88 2.09 0 1.23.9 2.42 1.02 2.59.12.16 1.78 2.72 4.31 3.81.6.26 1.07.42 1.43.54.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.57.21-1.06.15-1.18-.06-.11-.23-.18-.48-.31zM16 3C8.83 3 3 8.76 3 15.86c0 2.25.61 4.45 1.78 6.39L3 29l6.9-1.8c1.88 1.02 4 1.55 6.16 1.55 7.17 0 13-5.76 13-12.86C29 8.76 23.17 3 16 3zm0 23.46c-2.02 0-3.99-.55-5.68-1.6l-.41-.25-4.1 1.07 1.1-3.97-.27-.4a10.42 10.42 0 0 1-1.73-5.74C4.91 9.98 10.02 4.9 16 4.9s11.09 5.08 11.09 10.97S21.98 26.46 16 26.46z" />
+            </svg>
+            <div className="absolute inset-0 rounded-full bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </a>
+
+          {/* Search */}
+          <button 
+            className="group relative p-2.5 rounded-full bg-sky-100 hover:bg-sky-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            aria-label="Search"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+          >
+            <Search className="w-5 h-5 text-sky-600 group-hover:text-sky-700 transition-colors duration-300" strokeWidth={2} />
+            <div className="absolute inset-0 rounded-full bg-sky-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+          </button>
+
+          {/* Wishlist */}
+          <button 
+            className="group relative p-2.5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            aria-label="Wishlist"
+            onClick={() => setOffCanvasType('favorites')}
+          >
+            <Heart className="w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors duration-300" strokeWidth={2} fill="none" />
+            <div className="absolute inset-0 rounded-full bg-red-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+          </button>
+
+          {/* Shopping Bag */}
+          <button 
+            className="group relative p-2.5 rounded-full bg-orange-100 hover:bg-orange-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            aria-label="Shopping bag"
+            onClick={() => setIsShoppingBagOpen(true)}
+          >
+            <ShoppingBagIcon className="w-5 h-5 text-orange-600 group-hover:text-orange-700 transition-colors duration-300" strokeWidth={2} />
+            <div className="absolute inset-0 rounded-full bg-orange-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+            {totalItems > 0 && (
+              <span className="absolute top-0 right-0 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center transform translate-x-1 -translate-y-1 shadow-md">
+                {totalItems}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Search overlay */}
+      {isSearchOpen && (
+        <div className="absolute top-full left-0 right-0 bg-background border-b border-border z-50">
+          <div className="px-6 py-8">
+            <div className="max-w-2xl mx-auto">
+              <div className="relative mb-8">
+                <div className="flex items-center border-b border-border pb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5 text-foreground mr-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                  <input type="text" placeholder="Search for jewelry..." className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-lg" autoFocus />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-foreground text-sm font-light mb-4">Popular Searches</h3>
+                <div className="flex flex-wrap gap-3">
+                  {popularSearches.map((search, index) => (
+                    <button key={index} className="text-foreground hover:text-primary text-sm font-light py-2 px-4 border border-border rounded-full transition-colors duration-200 hover:border-primary">
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-out menu - works on ALL screen sizes */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 h-screen">
+          <div className="absolute inset-0 bg-black/50 h-screen" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="absolute left-0 top-8 h-[calc(100vh-32px)] w-80 md:w-96 bg-background border-r border-border animate-slide-in flex flex-col overflow-y-auto">
+            {/* Menu header */}
+            <div className="flex items-center justify-between p-5 border-b border-border" style={{ backgroundColor: 'rgb(182, 165, 153)' }}>
+              <div className="flex items-center gap-2">
+                <img src={triyanLogoSmall} alt="Triyank" className="h-7 w-7 object-contain" />
+                <span className="text-lg font-bold tracking-[0.22em] text-[#1a1410] drop-shadow-sm">TRIYANK</span>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-black hover:text-black/70 transition-colors" aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Collection links */}
+            <div className="border-b border-border">
+              {navItems.map((item) => (
+                <div key={item.name}>
+                  {(item.name === "Western" || item.name === "Traditional" || item.name === "Leather") && item.hasSubcategories ? (
+                    <div>
+                      <button
+                        onClick={() =>
+                          setExpandedMobileSection(
+                            expandedMobileSection === item.name ? null : item.name
+                          )
+                        }
+                        className="flex items-center justify-between w-full px-6 py-3.5 text-foreground text-lg font-semibold hover:bg-muted/50 transition-colors"
+                      >
+                        <span>{item.name}</span>
+                        {expandedMobileSection === item.name ? (
+                          <Minus size={18} className="text-muted-foreground" />
+                        ) : (
+                          <Plus size={18} className="text-muted-foreground" />
+                        )}
+                      </button>
+                      {expandedMobileSection === item.name && (
+                        <div className="bg-muted/30">
+                          {(() => {
+                            const categories = item.name === "Western" ? westernSubcategories : 
+                                             item.name === "Traditional" ? traditionalSubcategories : leatherSubcategories;
+                            return categories.map((category) => (
+                            <div key={category.name} className="border-b border-border/50">
+                              <button
+                                onClick={() => {
+                                  let expandedList: string[];
+                                  let setExpanded: React.Dispatch<React.SetStateAction<string[]>>;
+                                  
+                                  if (item.name === "Western") {
+                                    expandedList = expandedWesternCategories;
+                                    setExpanded = setExpandedWesternCategories;
+                                  } else if (item.name === "Traditional") {
+                                    expandedList = expandedTraditionalCategories;
+                                    setExpanded = setExpandedTraditionalCategories;
+                                  } else {
+                                    expandedList = expandedLeatherCategories;
+                                    setExpanded = setExpandedLeatherCategories;
+                                  }
+                                  
+                                  if (expandedList.includes(category.name)) {
+                                    setExpanded(expandedList.filter(cat => cat !== category.name));
+                                  } else {
+                                    setExpanded([...expandedList, category.name]);
+                                  }
+                                }}
+                                className="flex items-center justify-between w-full px-10 py-3 text-foreground text-base font-semibold hover:bg-muted/50 transition-colors"
+                              >
+                                <span>{category.name}</span>
+                                {(() => {
+                                  const expandedList = item.name === "Western" ? expandedWesternCategories : 
+                                                     item.name === "Traditional" ? expandedTraditionalCategories : expandedLeatherCategories;
+                                  return expandedList.includes(category.name) ? (
+                                    <Minus size={16} className="text-muted-foreground" />
+                                  ) : (
+                                    <Plus size={16} className="text-muted-foreground" />
+                                  );
+                                })()}
+                              </button>
+                              {(() => {
+                                const expandedList = item.name === "Western" ? expandedWesternCategories : 
+                                                   item.name === "Traditional" ? expandedTraditionalCategories : expandedLeatherCategories;
+                                if (expandedList.includes(category.name)) {
+                                  return (
+                                    <div className="bg-muted/20">
+                                      <div className="px-12 py-2">
+                                        <div className="text-xs font-semibold text-[#1a1410] mb-2">
+                                          {item.name.toUpperCase()} JEWELLERY
+                                        </div>
+                                      </div>
+                                      {category.items.map((subItem) => (
+                                        <Link
+                                          key={subItem}
+                                          to={`/category/${subItem.toLowerCase().replace(/\s+/g, '-')}`}
+                                          className="block px-12 py-2 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                          onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                          {subItem}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                          ))
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      to={item.href}
+                      className="flex items-center justify-between px-6 py-3.5 text-foreground text-lg font-semibold hover:bg-muted/50 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                      <ArrowRight size={16} className="text-muted-foreground" />
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Shopping Bag Component */}
+      <ShoppingBag 
+        isOpen={isShoppingBagOpen}
+        onClose={() => setIsShoppingBagOpen(false)}
+        cartItems={bagItems}
+        updateQuantity={handleUpdateQuantity}
+        onViewFavorites={() => {
+          setIsShoppingBagOpen(false);
+          setOffCanvasType('favorites');
+        }}
+      />
+      
+      {/* Favorites Off-canvas overlay */}
+      {offCanvasType === 'favorites' && (
+        <div className="fixed inset-0 z-50 h-screen">
+          <div className="absolute inset-0 bg-black/50 h-screen" onClick={() => setOffCanvasType(null)} />
+          <div className="absolute right-0 top-0 h-screen w-80 md:w-96 bg-background border-l border-border animate-slide-in-right flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-light text-foreground">Your Wishlist</h2>
+              <button onClick={() => setOffCanvasType(null)} className="p-2 text-foreground hover:text-muted-foreground transition-colors" aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-muted-foreground text-sm mb-6">
+                You haven't added any items to your wishlist yet. Browse our collection and click the heart icon to save items you love.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navigation;
