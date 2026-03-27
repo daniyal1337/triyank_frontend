@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { EmblaCarouselType } from "embla-carousel";
 import {
   Carousel,
   CarouselContent,
@@ -36,15 +39,32 @@ const occasions = [
 ];
 
 const ShopByOccasion = () => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
+
+  const onSelect = useCallback((api: EmblaCarouselType) => {
+    setSelectedIndex(api.selectedScrollSnap());
+  }, []);
+
+  const handleSetApi = useCallback(
+    (api: EmblaCarouselType | undefined) => {
+      if (!api) return;
+      setEmblaApi(api);
+      api.on("select", onSelect);
+      onSelect(api);
+    },
+    [onSelect]
+  );
+
   return (
-    <section className="py-14 px-6 bg-muted/30">
+    <section className="py-14 px-4 md:px-6 bg-muted/30">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-10 md:mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-medium tracking-wider text-foreground mb-4">
             SHOP BY OCCASION
@@ -52,18 +72,17 @@ const ShopByOccasion = () => {
           <div className="w-20 h-px bg-primary mx-auto" />
         </motion.div>
 
+        <div className="relative">
         <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
+          opts={{ align: "center", loop: true }}
+          setApi={handleSetApi}
           className="w-full"
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-3 md:-ml-4">
             {occasions.map((occasion, index) => (
               <CarouselItem
                 key={occasion.name}
-                className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4"
+                className="pl-3 md:pl-4 basis-[80%] sm:basis-[60%] md:basis-1/3 lg:basis-1/4"
               >
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
@@ -94,9 +113,44 @@ const ShopByOccasion = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
+
+          {/* Desktop arrows */}
           <CarouselPrevious className="hidden md:flex -left-4 bg-background/80 border-border hover:bg-background" />
           <CarouselNext className="hidden md:flex -right-4 bg-background/80 border-border hover:bg-background" />
         </Carousel>
+
+          {/* Mobile arrows */}
+          <button
+            onClick={() => emblaApi?.scrollPrev()}
+            aria-label="Previous"
+            className="md:hidden absolute left-0 top-[45%] -translate-y-1/2 -translate-x-1 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={() => emblaApi?.scrollNext()}
+            aria-label="Next"
+            className="md:hidden absolute right-0 top-[45%] -translate-y-1/2 translate-x-1 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+
+        {/* Mobile dot indicators */}
+        <div className="flex md:hidden justify-center gap-2 mt-5">
+          {occasions.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => emblaApi?.scrollTo(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === selectedIndex
+                  ? "w-6 bg-primary"
+                  : "w-2 bg-primary/30"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -15,7 +15,7 @@ import LeatherJewelry from "../components/home/LeatherJewelry";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       <main className="mt-16">
         <SplitHero />

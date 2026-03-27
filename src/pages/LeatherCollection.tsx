@@ -8,11 +8,11 @@ const LeatherCollection = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Banner */}
-      <section className="relative w-full h-[200px] md:h-[280px] overflow-hidden pt-16">
+      <section className="relative w-full h-[220px] md:h-[280px] overflow-hidden pt-16">
         <img src={leatherBanner} alt="Leather Jewelry Collection" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-          <img src={triyankLogo} alt="Triyank Logo" className="w-20 h-20 md:w-32 md:h-32 object-contain mb-3 drop-shadow-2xl" />
+        <div className="relative z-10 h-full flex flex-col items-center justify-end md:justify-center text-center px-6 pb-6 md:pb-0">
+          <img src={triyankLogo} alt="Triyank Logo" className="hidden md:block w-32 h-32 object-contain mb-3 drop-shadow-2xl" />
           <h1 className="text-2xl md:text-4xl font-bold tracking-[0.2em] text-white uppercase drop-shadow-lg mb-2">
             Leather Collection
           </h1>

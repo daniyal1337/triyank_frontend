@@ -18,7 +18,7 @@ const ContactUs = () => {
   };
 
   return (
-    <section className="py-14 px-6 bg-foreground text-background">
+    <section className="py-14 px-6 text-background" style={{ backgroundColor: 'hsl(45.52deg 54.87% 17.09%)' }}>
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

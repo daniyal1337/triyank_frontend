@@ -119,7 +119,7 @@ const CollectionsGrid = () => {
 
           <div className="lg:col-span-9">
             <div className="relative">
-              <div className="relative h-[360px] sm:h-[420px] md:h-[520px] flex items-center justify-center overflow-visible">
+              <div className="relative h-[360px] sm:h-[420px] md:h-[520px] flex items-center justify-center overflow-hidden">
                 {collections.map((collection, index) => {
                   const offset = getOffset(index);
                   if (offset === null) return null;

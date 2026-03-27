@@ -9,8 +9,8 @@ const SplitHero = () => {
   return (
     <div>
       <section className="relative flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
-        {/* Centered logo at top */}
-        <div className="absolute top-9 left-1/2 -translate-x-1/2 z-20">
+        {/* Centered logo at top — desktop only */}
+        <div className="hidden md:block absolute top-9 left-1/2 -translate-x-1/2 z-20">
           <img src={triyanLogo} alt="Triyank" className="h-12 md:h-16 w-auto drop-shadow-lg" />
         </div>
 
@@ -28,20 +28,20 @@ const SplitHero = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-[#3d3425]/80 via-[#3d3425]/20 to-transparent" />
           </div>
           
-          <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[50vh] md:min-h-full pb-16 md:pb-24 px-6">
+          <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[75vw] md:min-h-full pb-10 md:pb-24 px-4 md:px-6">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-center"
             >
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-white tracking-wider mb-2">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-medium text-white tracking-wider mb-1 md:mb-2">
                 WESTERN
               </h2>
-              <p className="text-lg md:text-xl text-white/90 tracking-widest mb-8">
+              <p className="text-sm md:text-xl text-white/90 tracking-widest mb-5 md:mb-8">
                 COLLECTION
               </p>
-              <span className="inline-block px-8 py-3 bg-white text-[#3d3425] text-sm font-medium tracking-wider transition-all duration-300 group-hover:bg-[#c9a86c] group-hover:text-white">
+              <span className="inline-block px-6 md:px-8 py-2.5 md:py-3 bg-white text-[#3d3425] text-xs md:text-sm font-medium tracking-wider transition-all duration-300 group-hover:bg-[#c9a86c] group-hover:text-white">
                 EXPLORE NOW
               </span>
             </motion.div>
@@ -62,20 +62,20 @@ const SplitHero = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-[#5c1a1a]/60 via-[#5c1a1a]/10 to-transparent" />
           </div>
           
-          <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[50vh] md:min-h-full pb-16 md:pb-24 px-6">
+          <div className="relative z-10 flex flex-col items-center justify-end h-full min-h-[75vw] md:min-h-full pb-10 md:pb-24 px-4 md:px-6">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-center"
             >
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-white tracking-wider mb-2">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-medium text-white tracking-wider mb-1 md:mb-2">
                 TRADITIONAL
               </h2>
-              <p className="text-lg md:text-xl text-white/90 tracking-widest mb-8">
+              <p className="text-sm md:text-xl text-white/90 tracking-widest mb-5 md:mb-8">
                 COLLECTION
               </p>
-              <span className="inline-block px-8 py-3 bg-white text-[#5c1a1a] text-sm font-medium tracking-wider transition-all duration-300 group-hover:bg-[#c9a86c] group-hover:text-white">
+              <span className="inline-block px-6 md:px-8 py-2.5 md:py-3 bg-white text-[#5c1a1a] text-xs md:text-sm font-medium tracking-wider transition-all duration-300 group-hover:bg-[#c9a86c] group-hover:text-white">
                 EXPLORE NOW
               </span>
             </motion.div>
