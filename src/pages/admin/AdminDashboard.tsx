@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Search, Bell, UserCircle } from "lucide-react";
 import { Product, allProducts } from "@/data/products";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminStats from "@/components/admin/AdminStats";
@@ -31,7 +32,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen bg-[#f1f2f4] dark:bg-background text-foreground">
       <AdminSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -39,41 +40,62 @@ const AdminDashboard = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
-      <main className={cn("transition-all duration-300 min-h-screen", sidebarCollapsed ? "ml-16" : "ml-60")}>
-        {/* Top bar */}
-        <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-border h-14 flex items-center px-6">
-          <h1 className="text-sm font-semibold text-foreground capitalize">{activeTab}</h1>
+      <main className={cn("transition-all duration-300 min-h-screen flex flex-col", sidebarCollapsed ? "ml-16" : "ml-60")}>
+        {/* Shopify-style Top Bar */}
+        <header className="sticky top-0 z-40 bg-white dark:bg-card border-b border-border h-14 flex items-center justify-between px-6 shadow-sm">
+          <div className="flex-1 flex items-center gap-4">
+            <h1 className="text-xl font-bold text-foreground capitalize mr-4">
+              {activeTab === "dashboard" ? "Home" : activeTab}
+            </h1>
+            <div className="relative max-w-md w-full hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input type="text" placeholder="Search" className="w-full h-9 pl-9 pr-4 rounded-lg bg-[#f1f2f4] dark:bg-secondary border-none text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium placeholder:font-normal" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors">
+              <Bell className="w-5 h-5" />
+              <div className="absolute top-2 right-2.5 w-2 h-2 bg-black dark:bg-white rounded-full ring-2 ring-white dark:ring-card"></div>
+            </button>
+            <button className="flex items-center gap-2 p-1 pl-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors">
+              <span className="text-sm font-medium hidden sm:block text-foreground/80">Admin</span>
+              <UserCircle className="w-7 h-7 text-muted-foreground" />
+            </button>
+          </div>
         </header>
 
-        <div className="p-6 max-w-[1400px] space-y-6">
+        <div className="p-6 max-w-[1200px] w-full mx-auto space-y-6 flex-1">
           {activeTab === "dashboard" && (
             <>
               <AdminStats products={products} orders={orders} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-card rounded-xl border border-border p-5">
-                  <h3 className="text-sm font-semibold mb-4">Recent Orders</h3>
+                <div className="bg-white dark:bg-card rounded-xl border border-border p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold mb-4 text-foreground/80">Recent Orders</h3>
                   <div className="space-y-3">
                     {orders.slice(0, 5).map(o => (
                       <div key={o.id} className="flex items-center justify-between text-sm">
                         <div>
                           <span className="font-mono text-xs text-muted-foreground mr-2">{o.id}</span>
-                          <span className="font-medium">{o.customer}</span>
+                          <span className="font-medium text-foreground">{o.customer}</span>
                         </div>
-                        <span className="font-medium">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(o.total)}</span>
+                        <span className="font-medium text-foreground">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(o.total)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="bg-card rounded-xl border border-border p-5">
-                  <h3 className="text-sm font-semibold mb-4">Low Stock Items</h3>
+                <div className="bg-white dark:bg-card rounded-xl border border-border p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold mb-4 text-foreground/80">Latest Products in Catalog</h3>
                   <div className="space-y-3">
-                    {products.filter(p => p.stock <= (p.lowStockThreshold || 5)).slice(0, 5).map(p => (
+                    {products.slice().reverse().slice(0, 5).map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <img src={p.image} alt="" className="w-8 h-8 rounded object-cover border border-border" />
-                          <span className="font-medium">{p.name}</span>
+                        <div className="flex items-center gap-3">
+                          <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-border bg-secondary" />
+                          <div>
+                            <span className="font-medium block">{p.name}</span>
+                            <span className="text-xs text-muted-foreground">{p.category}</span>
+                          </div>
                         </div>
-                        <span className="text-destructive font-medium">{p.stock} left</span>
+                        <span className="font-medium">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(p.price)}</span>
                       </div>
                     ))}
                   </div>
@@ -90,8 +112,29 @@ const AdminDashboard = () => {
             <OrdersTable orders={orders} setOrders={setOrders} />
           )}
 
+          {activeTab === "customers" && (
+            <div className="bg-white dark:bg-card rounded-xl border border-border p-12 text-center text-muted-foreground shadow-sm">
+              <h2 className="text-lg font-semibold text-foreground mb-2">Customers</h2>
+              <p>View and manage your customer accounts and purchase history here.</p>
+            </div>
+          )}
+
           {activeTab === "analytics" && (
             <AnalyticsDashboard products={products} orders={orders} />
+          )}
+
+          {activeTab === "discounts" && (
+            <div className="bg-white dark:bg-card rounded-xl border border-border p-12 text-center text-muted-foreground shadow-sm">
+              <h2 className="text-lg font-semibold text-foreground mb-2">Discounts</h2>
+              <p>Create and manage discount codes and automatic discounts.</p>
+            </div>
+          )}
+
+          {activeTab === "settings" && (
+            <div className="bg-white dark:bg-card rounded-xl border border-border p-12 text-center text-muted-foreground shadow-sm">
+              <h2 className="text-lg font-semibold text-foreground mb-2">Settings</h2>
+              <p>Configure your store details, shipping, and payments.</p>
+            </div>
           )}
         </div>
       </main>

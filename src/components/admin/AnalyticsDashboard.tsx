@@ -20,7 +20,7 @@ const KpiCard = ({
   label: string; value: string | number; sub: string;
   trend: string; trendUp: boolean; icon: any;
 }) => (
-  <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+  <div className="bg-white dark:bg-card rounded-xl border border-border p-5 space-y-3 shadow-sm">
     <div className="flex items-center justify-between">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
       <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
@@ -51,7 +51,7 @@ const monthlyData = [
 const AnalyticsDashboard = ({ products, orders }: AnalyticsDashboardProps) => {
   const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.total, 0);
   const totalOrders = orders.length;
-  const activeProducts = products.filter(p => p.status === "active").length;
+  const activeProducts = products.length;
   const avgOrderValue = totalOrders ? Math.round(totalRevenue / totalOrders) : 0;
   const pendingOrders = orders.filter(o => o.status === "pending").length;
   const deliveredOrders = orders.filter(o => o.status === "delivered").length;
@@ -63,11 +63,11 @@ const AnalyticsDashboard = ({ products, orders }: AnalyticsDashboardProps) => {
         <KpiCard label="Total Revenue" value={fmt(totalRevenue + 856200)} sub="All-time gross revenue" trend="+18.4%" trendUp icon={IndianRupee} />
         <KpiCard label="Orders" value={totalOrders + 148} sub={`${pendingOrders} pending · ${deliveredOrders} delivered`} trend="+12.1%" trendUp icon={ShoppingCart} />
         <KpiCard label="Avg. Order Value" value={fmt(avgOrderValue || 28400)} sub="Per completed order" trend="+6.3%" trendUp icon={BarChart3} />
-        <KpiCard label="Active Products" value={activeProducts} sub={`${products.length} total in catalog`} trend="-2 this week" trendUp={false} icon={Package} />
+        <KpiCard label="Total Catalog" value={activeProducts} sub="Products managed" trend="+2 this week" trendUp={true} icon={Package} />
       </div>
 
       {/* Revenue Summary */}
-      <div className="bg-card rounded-xl border border-border p-5">
+      <div className="bg-white dark:bg-card rounded-xl border border-border p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-1">
           <TrendingUp className="w-4 h-4 text-foreground" />
           <h3 className="text-sm font-semibold text-foreground">Revenue Summary</h3>

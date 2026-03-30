@@ -138,7 +138,7 @@ const OrdersTable = ({ orders, setOrders }: OrdersTableProps) => {
           { label: "Delivered", value: counts.delivered || 0, color: "text-emerald-600" },
           { label: "Revenue", value: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalRevenue), color: "text-foreground" },
         ].map(card => (
-          <div key={card.label} className="bg-card border border-border rounded-xl p-3">
+          <div key={card.label} className="bg-white dark:bg-card border border-border rounded-xl p-3 shadow-sm">
             <p className="text-[11px] text-muted-foreground">{card.label}</p>
             <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>
           </div>
@@ -177,7 +177,7 @@ const OrdersTable = ({ orders, setOrders }: OrdersTableProps) => {
       <p className="text-xs text-muted-foreground">{filtered.length} order{filtered.length !== 1 ? "s" : ""} found</p>
 
       {/* Table */}
-      <div className="bg-card rounded-xl border border-border overflow-x-auto">
+      <div className="bg-white dark:bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="bg-secondary/50">

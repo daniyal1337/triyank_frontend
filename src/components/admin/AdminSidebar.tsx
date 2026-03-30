@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Package,
+  Home,
+  Tag,
   ShoppingCart,
-  BarChart3,
+  BarChart2,
+  Users,
+  Percent,
+  Settings,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
@@ -17,26 +20,29 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "products", label: "Products", icon: Package },
+  { id: "dashboard", label: "Home", icon: Home },
   { id: "orders", label: "Orders", icon: ShoppingCart },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "products", label: "Products", icon: Tag },
+  { id: "customers", label: "Customers", icon: Users },
+  { id: "analytics", label: "Analytics", icon: BarChart2 },
+  { id: "discounts", label: "Discounts", icon: Percent },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle }: AdminSidebarProps) => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-foreground text-background z-50 transition-all duration-300 flex flex-col",
+        "fixed left-0 top-0 h-screen bg-[#ebebeb] dark:bg-card border-r border-border text-foreground z-50 transition-all duration-300 flex flex-col",
         collapsed ? "w-16" : "w-60"
       )}
     >
       {/* Logo */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-muted-foreground/20">
         {!collapsed && (
-          <span className="text-sm font-semibold tracking-wider uppercase">Triyank Admin</span>
+          <span className="text-base font-bold tracking-tight">Store Admin</span>
         )}
-        <button onClick={onToggle} className="p-1.5 rounded-md hover:bg-muted-foreground/20 transition-colors">
+        <button onClick={onToggle} className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
           <ChevronLeft className={cn("w-4 h-4 transition-transform", collapsed && "rotate-180")} />
         </button>
       </div>
@@ -48,10 +54,10 @@ const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle }: AdminSide
             key={item.id}
             onClick={() => onTabChange(item.id)}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
               activeTab === item.id
-                ? "bg-primary-foreground/15 text-background font-medium"
-                : "text-muted-foreground hover:bg-muted-foreground/10 hover:text-background"
+                ? "bg-black/10 dark:bg-white/10 font-bold text-foreground"
+                : "text-foreground/80 hover:bg-black/5 dark:hover:bg-white/5 font-medium hover:text-foreground"
             )}
           >
             <item.icon className="w-4 h-4 shrink-0" />
@@ -64,7 +70,7 @@ const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle }: AdminSide
       <div className="p-2 border-t border-muted-foreground/20">
         <Link
           to="/"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted-foreground/10 hover:text-background transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground/80 font-medium hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground transition-colors"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Back to Store</span>}

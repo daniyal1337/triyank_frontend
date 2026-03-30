@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+
 import {
   Dialog,
   DialogContent,
@@ -151,15 +151,11 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       toast({ title: "Product name is required", variant: "destructive" });
       return;
     }
-    if (!form.sku?.trim()) {
-      toast({ title: "SKU is required", variant: "destructive" });
-      return;
-    }
     const now = new Date().toISOString().split("T")[0];
     const saved: Product = {
       id: product?.id || `p${Date.now()}`,
       name: form.name || "",
-      sku: form.sku || "",
+      sku: form.sku || `TRY-${Date.now().toString().slice(-6)}`,
       price: form.price || 0,
       originalPrice: form.originalPrice,
       costPrice: form.costPrice,
@@ -173,9 +169,9 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       occasion: form.occasion,
       weight: form.weight,
       dimensions: form.dimensions,
-      stock: form.stock || 0,
+      stock: form.stock || 10,
       lowStockThreshold: form.lowStockThreshold || 5,
-      status: (form.status as ProductStatus) || "draft",
+      status: (form.status as ProductStatus) || "active",
       isNew: form.isNew,
       isBestseller: form.isBestseller,
       isFeatured: form.isFeatured,
@@ -206,100 +202,14 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               <Input value={form.name} onChange={e => update("name", e.target.value)} placeholder="e.g. Aria Chain Necklace" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">SKU *</Label>
-                <Input value={form.sku} onChange={e => update("sku", e.target.value)} placeholder="TRY-W-NCK-001" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Status</Label>
-                <Select value={form.status} onValueChange={v => update("status", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Price (₹) *</Label>
+              <Input type="number" value={form.price || ""} onChange={e => update("price", Number(e.target.value))} />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Short Description</Label>
-              <Input value={form.shortDescription} onChange={e => update("shortDescription", e.target.value)} placeholder="Brief one-liner" />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Full Description</Label>
-              <Textarea value={form.description} onChange={e => update("description", e.target.value)} rows={4} placeholder="Detailed product description..." />
-            </div>
-
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-1">Pricing & Inventory</h3>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Selling Price (₹) *</Label>
-                <Input type="number" value={form.price || ""} onChange={e => update("price", Number(e.target.value))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Original / MRP (₹)</Label>
-                <Input type="number" value={form.originalPrice || ""} onChange={e => update("originalPrice", Number(e.target.value) || undefined)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Cost Price (₹)</Label>
-                <Input type="number" value={form.costPrice || ""} onChange={e => update("costPrice", Number(e.target.value) || undefined)} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Stock Quantity</Label>
-                <Input type="number" value={form.stock || ""} onChange={e => update("stock", Number(e.target.value))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Low Stock Alert</Label>
-                <Input type="number" value={form.lowStockThreshold || ""} onChange={e => update("lowStockThreshold", Number(e.target.value))} />
-              </div>
-            </div>
-
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-1">Tags & Badges</h3>
-            <div className="flex items-center gap-4 flex-wrap">
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <Switch checked={!!form.isNew} onCheckedChange={v => update("isNew", v)} />
-                New Arrival
-              </label>
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <Switch checked={!!form.isBestseller} onCheckedChange={v => update("isBestseller", v)} />
-                Bestseller
-              </label>
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <Switch checked={!!form.isFeatured} onCheckedChange={v => update("isFeatured", v)} />
-                Featured
-              </label>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Tags</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={tagInput}
-                  onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTag())}
-                  placeholder="Add tag and press Enter..."
-                  className="flex-1"
-                />
-                <Button type="button" variant="outline" size="sm" onClick={addTag}>Add</Button>
-              </div>
-              {form.tags && form.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {form.tags.map(tag => (
-                    <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                      {tag}
-                      <button onClick={() => removeTag(tag)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                </div>
-              )}
+              <Label className="text-xs">Description</Label>
+              <Textarea value={form.description} onChange={e => update("description", e.target.value)} rows={6} placeholder="Detailed product description..." />
             </div>
           </div>
 
@@ -458,15 +368,9 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Weight</Label>
-                <Input value={form.weight} onChange={e => update("weight", e.target.value)} placeholder="e.g. 15g" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Dimensions</Label>
-                <Input value={form.dimensions} onChange={e => update("dimensions", e.target.value)} placeholder="e.g. 5cm × 3cm" />
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Weight</Label>
+              <Input value={form.weight} onChange={e => update("weight", e.target.value)} placeholder="e.g. 15g" />
             </div>
           </div>
         </div>

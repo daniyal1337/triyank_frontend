@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import ScrollToTop from "./components/ScrollToTop";
 import PromoTicker from "./components/header/PromoTicker";
@@ -31,6 +31,45 @@ import LeatherCollection from "./pages/LeatherCollection";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  return (
+    <>
+      <ScrollToTop />
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        {!isAdminRoute && <PromoTicker />}
+        {!isAdminRoute && <Header />}
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/collection/western" element={<WesternCollection />} />
+          <Route path="/collection/traditional" element={<TraditionalCollection />} />
+          <Route path="/category/:category" element={<Category />} />
+          <Route path="/product/:productId" element={<ProductDetail />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/about/our-story" element={<OurStory />} />
+          <Route path="/about/sustainability" element={<Sustainability />} />
+          <Route path="/about/size-guide" element={<SizeGuide />} />
+          <Route path="/about/customer-care" element={<CustomerCare />} />
+          <Route path="/about/store-locator" element={<StoreLocator />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/occasion/:occasion" element={<OccasionCollection />} />
+          <Route path="/collection/leather" element={<LeatherCollection />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
@@ -38,35 +77,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ScrollToTop />
-          <div className="min-h-screen bg-background overflow-x-hidden">
-            <PromoTicker />
-            <Header />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/collection/western" element={<WesternCollection />} />
-              <Route path="/collection/traditional" element={<TraditionalCollection />} />
-              <Route path="/category/:category" element={<Category />} />
-              <Route path="/product/:productId" element={<ProductDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/about/our-story" element={<OurStory />} />
-              <Route path="/about/sustainability" element={<Sustainability />} />
-              <Route path="/about/size-guide" element={<SizeGuide />} />
-              <Route path="/about/customer-care" element={<CustomerCare />} />
-              <Route path="/about/store-locator" element={<StoreLocator />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/occasion/:occasion" element={<OccasionCollection />} />
-              <Route path="/collection/leather" element={<LeatherCollection />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </CartProvider>

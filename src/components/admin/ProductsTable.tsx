@@ -23,28 +23,21 @@ interface ProductsTableProps {
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
-const statusBadge: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700",
-  draft: "bg-amber-100 text-amber-700",
-  archived: "bg-secondary text-muted-foreground",
-};
+
 
 const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
   const [search, setSearch] = useState("");
   const [filterCollection, setFilterCollection] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   const filtered = products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchCollection = filterCollection === "all" || p.collection === filterCollection;
     const matchCategory = filterCategory === "all" || p.category === filterCategory;
-    const matchStatus = filterStatus === "all" || p.status === filterStatus;
-    return matchSearch && matchCollection && matchCategory && matchStatus;
+    return matchSearch && matchCollection && matchCategory;
   });
 
   const handleSave = (product: Product) => {
@@ -83,7 +76,7 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or SKU..."
+              placeholder="Search by name..."
               className="pl-9"
             />
           </div>
@@ -105,15 +98,7 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
               ))}
             </SelectContent>
           </Select>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-28"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
+
         </div>
         <Button onClick={openAdd} className="gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Add Product
@@ -124,19 +109,16 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
       <p className="text-xs text-muted-foreground">{filtered.length} product{filtered.length !== 1 ? "s" : ""} found</p>
 
       {/* Table */}
-      <div className="bg-card rounded-xl border border-border overflow-x-auto">
+      <div className="bg-white dark:bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="bg-secondary/50">
               <TableHead className="w-12">#</TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
               <TableHead>Collection</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Occasion</TableHead>
               <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-center">Stock</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Badges</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -153,35 +135,13 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs font-mono text-muted-foreground">{product.sku}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="capitalize text-xs">{product.collection}</Badge>
                 </TableCell>
                 <TableCell className="text-sm">{product.category}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{product.occasion || "N/A"}</TableCell>
                 <TableCell className="text-right">
-                  <div>
-                    <p className="text-sm font-medium">{formatPrice(product.price)}</p>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <p className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice)}</p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  <span className={`text-sm font-medium ${product.stock <= (product.lowStockThreshold || 5) ? "text-red-600" : "text-foreground"}`}>
-                    {product.stock}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[product.status]}`}>
-                    {product.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    {product.isNew && <Badge className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5">New</Badge>}
-                    {product.isBestseller && <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5">Best</Badge>}
-                    {product.isFeatured && <Badge className="bg-blue-100 text-blue-700 text-[10px] px-1.5">Featured</Badge>}
-                  </div>
+                  <p className="text-sm font-medium">{formatPrice(product.price)}</p>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
