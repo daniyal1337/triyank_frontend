@@ -4,8 +4,6 @@ import {
   Tag,
   ShoppingCart,
   BarChart2,
-  Users,
-  Percent,
   Settings,
   LogOut,
   ChevronLeft,
@@ -23,9 +21,7 @@ const navItems = [
   { id: "dashboard", label: "Home", icon: Home },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "products", label: "Products", icon: Tag },
-  { id: "customers", label: "Customers", icon: Users },
   { id: "analytics", label: "Analytics", icon: BarChart2 },
-  { id: "discounts", label: "Discounts", icon: Percent },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
