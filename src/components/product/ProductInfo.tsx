@@ -5,20 +5,66 @@ import { Button } from "@/components/ui/button";
 import { 
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator 
 } from "@/components/ui/breadcrumb";
-import { Minus, Plus, Check, Heart } from "lucide-react";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Minus, Plus, Check, Heart, Truck, Gem, Shield, RefreshCw, Clock, Wallet } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { allProducts, formatPrice } from "@/data/products";
 import { useToast } from "@/hooks/use-toast";
+
+const ProductFeatures = () => (
+  <div className="bg-[#f5f5f5] py-4 px-4">
+    <div className="flex justify-around items-center">
+      <div className="flex flex-col items-center gap-2">
+        <Truck className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">Free Shipping</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <Shield className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">Skin Safe Jewellery</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <Gem className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">18K Gold Tone Plated</span>
+      </div>
+    </div>
+  </div>
+);
+
+const ProductServices = () => (
+  <div className="border-t border-border">
+    <div className="grid grid-cols-3 divide-x divide-border">
+      <div className="flex flex-col items-center gap-2 py-4 px-2">
+        <RefreshCw className="w-5 h-5 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">2 Days Return</span>
+      </div>
+      <div className="flex flex-col items-center gap-2 py-4 px-2">
+        <Clock className="w-5 h-5 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">10 Days Exchange</span>
+      </div>
+      <div className="flex flex-col items-center gap-2 py-4 px-2">
+        <Wallet className="w-5 h-5 text-[#666]" strokeWidth={1.5} />
+        <span className="text-xs text-[#666] text-center">Cash On Delivery</span>
+      </div>
+    </div>
+  </div>
+);
 
 const ProductInfo = () => {
   const { productId } = useParams();
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const [added, setAdded] = useState(false);
-  const [wishlisted, setWishlisted] = useState(false);
 
   const product = allProducts.find(p => p.id === productId);
+  const isWishlisted = product ? isInWishlist(product.id) : false;
 
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
@@ -31,14 +77,25 @@ const ProductInfo = () => {
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const displayName = product?.name || "Pantheon";
-  const displayCategory = product?.category || "Earrings";
-  const displayPrice = product ? formatPrice(product.price) : "€2,850";
+  const handleWishlistToggle = () => {
+    if (!product) return;
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+      toast({ title: "Removed from wishlist", description: `${product.name} removed from your wishlist.` });
+    } else {
+      addToWishlist(product);
+      toast({ title: "Added to wishlist", description: `${product.name} added to your wishlist.` });
+    }
+  };
+
+  const displayName = product?.name || "Product Name";
+  const displayCategory = product?.category || "Category";
+  const displayPrice = product ? formatPrice(product.price) : "₹0";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Breadcrumb - Show only on desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block mb-6">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -59,54 +116,14 @@ const ProductInfo = () => {
       </div>
 
       {/* Product title and price */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm font-light text-muted-foreground mb-1">{displayCategory}</p>
-            <h1 className="text-2xl md:text-3xl font-light text-foreground">{displayName}</h1>
-          </div>
-          <div className="text-right">
-            <p className="text-xl font-light text-foreground">{displayPrice}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Product details */}
-      <div className="space-y-4 py-4 border-b border-border">
-        {product?.material && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-light text-foreground">Material</h3>
-            <p className="text-sm font-light text-muted-foreground">{product.material}</p>
-          </div>
-        )}
-        {product?.dimensions && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-light text-foreground">Dimensions</h3>
-            <p className="text-sm font-light text-muted-foreground">{product.dimensions}</p>
-          </div>
-        )}
-        {product?.weight && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-light text-foreground">Weight</h3>
-            <p className="text-sm font-light text-muted-foreground">{product.weight}</p>
-          </div>
-        )}
-        {product?.occasion && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-light text-foreground">Occasion</h3>
-            <p className="text-sm font-light text-muted-foreground">{product.occasion}</p>
-          </div>
-        )}
-        {product?.description && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-light text-foreground">Description</h3>
-            <p className="text-sm font-light text-muted-foreground">{product.description}</p>
-          </div>
-        )}
+      <div className="mb-6">
+        <p className="text-sm text-muted-foreground mb-1">{displayCategory}</p>
+        <h1 className="text-2xl md:text-3xl font-light text-foreground mb-2">{displayName}</h1>
+        <p className="text-xl font-light text-foreground">{displayPrice}</p>
       </div>
 
       {/* Quantity and Add to Cart */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-6">
         <div className="flex items-center gap-4">
           <span className="text-sm font-light text-foreground">Quantity</span>
           <div className="flex items-center border border-border">
@@ -131,16 +148,90 @@ const ProductInfo = () => {
           </Button>
           <Button
             variant="outline"
-            className={`h-12 w-12 rounded-none border-border shrink-0 ${wishlisted ? 'bg-red-50 border-red-300' : ''}`}
-            onClick={() => {
-              setWishlisted(!wishlisted);
-              toast({ title: wishlisted ? "Removed from wishlist" : "Added to wishlist", description: `${displayName} ${wishlisted ? 'removed from' : 'added to'} your wishlist.` });
-            }}
+            className={`h-12 w-12 rounded-none border-border shrink-0 ${isWishlisted ? 'bg-red-50 border-red-300' : ''}`}
+            onClick={handleWishlistToggle}
           >
-            <Heart className={`h-5 w-5 ${wishlisted ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
+            <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
           </Button>
         </div>
       </div>
+
+      {/* Features Section */}
+      <ProductFeatures />
+
+      {/* Accordion Sections */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="description" className="border-b border-border">
+          <AccordionTrigger className="text-sm font-medium py-4 hover:no-underline">
+            Description
+          </AccordionTrigger>
+          <AccordionContent className="text-sm text-muted-foreground pb-4">
+            {product?.description || "No description available."}
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="specification" className="border-b border-border">
+          <AccordionTrigger className="text-sm font-medium py-4 hover:no-underline">
+            Specification
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-3 text-sm">
+              {product?.material && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Material</span>
+                  <span>{product.material}</span>
+                </div>
+              )}
+              {product?.weight && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Weight</span>
+                  <span>{product.weight}</span>
+                </div>
+              )}
+              {product?.dimensions && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Dimensions</span>
+                  <span>{product.dimensions}</span>
+                </div>
+              )}
+              {product?.occasion && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Occasion</span>
+                  <span>{product.occasion}</span>
+                </div>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="supplier" className="border-b border-border">
+          <AccordionTrigger className="text-sm font-medium py-4 hover:no-underline">
+            Supplier Information
+          </AccordionTrigger>
+          <AccordionContent className="text-sm text-muted-foreground pb-4">
+            <p>Manufactured by Triyank Jewelry Pvt. Ltd.</p>
+            <p className="mt-2">Karol Bagh, New Delhi - 110005, India</p>
+            <p className="mt-2">Contact: +91 98765 43210</p>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="returns" className="border-b border-border">
+          <AccordionTrigger className="text-sm font-medium py-4 hover:no-underline">
+            Returns
+          </AccordionTrigger>
+          <AccordionContent className="text-sm text-muted-foreground pb-4">
+            <p>We offer easy returns within 2 days of delivery.</p>
+            <ul className="mt-2 space-y-1 list-disc list-inside">
+              <li>Item must be unused and in original packaging</li>
+              <li>Return shipping is free for defective items</li>
+              <li>Refunds processed within 5-7 business days</li>
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* Services Section */}
+      <ProductServices />
     </div>
   );
 };

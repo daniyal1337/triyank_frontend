@@ -1,9 +1,10 @@
-import { ArrowRight, X, Plus, Minus, Heart, MessageCircle, Search, ShoppingBag as ShoppingBagIcon, ChevronDown } from "lucide-react";
+import { ArrowRight, X, Plus, Minus, Heart, MessageCircle, Search, ShoppingBag as ShoppingBagIcon, ChevronDown, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import ShoppingBag from "./ShoppingBag";
 import triyanLogoSmall from "@/assets/triyank-logo-small.png";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { formatPrice } from "@/data/products";
 
 const Navigation = () => {
@@ -18,6 +19,7 @@ const Navigation = () => {
   const [expandedLeatherCategories, setExpandedLeatherCategories] = useState<string[]>([]);
   
   const { cartItems, updateQuantity, totalItems } = useCart();
+  const { items: wishlistItems, removeFromWishlist, totalItems: wishlistCount } = useWishlist();
 
   const bagItems = cartItems.map(item => ({
     id: Number(item.id.replace(/\D/g, '')) || Math.random(),
@@ -114,34 +116,34 @@ const Navigation = () => {
     <nav className="relative" style={{ backgroundColor: 'rgb(182, 165, 153)' }}>
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         {/* Left: Hamburger + Logo + Brand Name */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-1.5 md:gap-3">
           {/* Hamburger - visible on ALL screen sizes now */}
           <button
-            className="p-2 mt-0.5 text-black hover:text-black/70 transition-colors duration-200"
+            className="p-1 md:p-2 text-black hover:text-black/70 transition-colors duration-200"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <div className="w-5 h-5 relative">
-              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
-                isMobileMenuOpen ? 'rotate-45 top-2.5' : 'top-1.5'
+            <div className="w-3.5 h-3.5 relative flex flex-col justify-center items-center">
+              <span className={`absolute block w-3.5 h-px bg-current transform transition-all duration-300 ${
+                isMobileMenuOpen ? 'rotate-45' : '-translate-y-1'
               }`}></span>
-              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 top-2.5 ${
+              <span className={`absolute block w-3.5 h-px bg-current transform transition-all duration-300 ${
                 isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
               }`}></span>
-              <span className={`absolute block w-5 h-px bg-current transform transition-all duration-300 ${
-                isMobileMenuOpen ? '-rotate-45 top-2.5' : 'top-3.5'
+              <span className={`absolute block w-3.5 h-px bg-current transform transition-all duration-300 ${
+                isMobileMenuOpen ? '-rotate-45' : 'translate-y-1'
               }`}></span>
             </div>
           </button>
 
           {/* Small Logo */}
           <Link to="/" className="flex items-center">
-            <img src={triyanLogoSmall} alt="Triyank" className="h-8 w-8 object-contain" />
+            <img src={triyanLogoSmall} alt="Triyank" className="h-6 w-6 md:h-8 md:w-8 object-contain" />
           </Link>
 
           {/* Brand Name - left aligned */}
           <Link to="/" className="flex items-center">
-            <h1 className="text-lg md:text-2xl mt-1 font-extrabold tracking-[0.28em] text-[#1a1410] drop-shadow-sm">
+            <h1 className="text-base md:text-2xl mt-1 font-extrabold tracking-[0.28em] text-[#1a1410] drop-shadow-sm">
               TRIYANK
             </h1>
           </Link>
@@ -154,12 +156,6 @@ const Navigation = () => {
             className="text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
           >
             HOME
-          </Link>
-          <Link 
-            to="/category/new-arrivals" 
-            className="text-black font-medium hover:text-[#1a1410] transition-colors duration-200 tracking-wide"
-          >
-            NEW ARRIVALS
           </Link>
           
           {/* SHOP BY CATEGORY with Dropdown */}
@@ -218,18 +214,18 @@ const Navigation = () => {
         </div>
 
         {/* Right icons */}
-        <div className="flex items-center space-x-1 md:space-x-2">
+        <div className="flex items-center space-x-1.5 md:space-x-3">
           {/* WhatsApp */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative p-3 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            className="group relative p-1.5 md:p-3 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Chat on WhatsApp"
           >
             <svg
               viewBox="0 0 32 32"
-              className="w-6 h-6 text-white transition-colors duration-300"
+              className="w-4 h-4 md:w-6 md:h-6 text-white transition-colors duration-300"
               fill="currentColor"
               aria-hidden="true"
             >
@@ -240,34 +236,39 @@ const Navigation = () => {
 
           {/* Search */}
           <button 
-            className="group relative p-2.5 rounded-full bg-sky-100 hover:bg-sky-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            className="group relative p-1.5 md:p-2.5 rounded-full bg-sky-100 hover:bg-sky-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Search"
             onClick={() => setIsSearchOpen(!isSearchOpen)}
           >
-            <Search className="w-5 h-5 text-sky-600 group-hover:text-sky-700 transition-colors duration-300" strokeWidth={2} />
+            <Search className="w-4 h-4 md:w-5 md:h-5 text-sky-600 group-hover:text-sky-700 transition-colors duration-300" strokeWidth={2} />
             <div className="absolute inset-0 rounded-full bg-sky-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
           </button>
 
           {/* Wishlist */}
           <button 
-            className="group relative p-2.5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            className="group relative p-1.5 md:p-2.5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Wishlist"
             onClick={() => setOffCanvasType('favorites')}
           >
-            <Heart className="w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors duration-300" strokeWidth={2} fill="none" />
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-red-500 group-hover:text-red-600 transition-colors duration-300" strokeWidth={2} fill={wishlistCount > 0 ? "currentColor" : "none"} />
             <div className="absolute inset-0 rounded-full bg-red-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 md:w-5 md:h-5 bg-red-500 text-white text-[9px] md:text-xs font-bold rounded-full flex items-center justify-center shadow-md">
+                {wishlistCount}
+              </span>
+            )}
           </button>
 
           {/* Shopping Bag */}
           <button 
-            className="group relative p-2.5 rounded-full bg-orange-100 hover:bg-orange-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
+            className="group relative p-1.5 md:p-2.5 rounded-full bg-orange-100 hover:bg-orange-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Shopping bag"
             onClick={() => setIsShoppingBagOpen(true)}
           >
-            <ShoppingBagIcon className="w-5 h-5 text-orange-600 group-hover:text-orange-700 transition-colors duration-300" strokeWidth={2} />
+            <ShoppingBagIcon className="w-4 h-4 md:w-5 md:h-5 text-orange-600 group-hover:text-orange-700 transition-colors duration-300" strokeWidth={2} />
             <div className="absolute inset-0 rounded-full bg-orange-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
             {totalItems > 0 && (
-              <span className="absolute top-0 right-0 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center transform translate-x-1 -translate-y-1 shadow-md">
+              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 md:w-5 md:h-5 bg-orange-500 text-white text-[9px] md:text-xs font-bold rounded-full flex items-center justify-center shadow-md">
                 {totalItems}
               </span>
             )}
@@ -449,16 +450,68 @@ const Navigation = () => {
           <div className="absolute inset-0 bg-black/50 h-screen" onClick={() => setOffCanvasType(null)} />
           <div className="absolute right-0 top-0 h-screen w-80 md:w-96 bg-background border-l border-border animate-slide-in-right flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-lg font-light text-foreground">Your Wishlist</h2>
+              <h2 className="text-lg font-light text-foreground">Your Wishlist ({wishlistCount})</h2>
               <button onClick={() => setOffCanvasType(null)} className="p-2 text-foreground hover:text-muted-foreground transition-colors" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6">
-              <p className="text-muted-foreground text-sm mb-6">
-                You haven't added any items to your wishlist yet. Browse our collection and click the heart icon to save items you love.
-              </p>
+            <div className="flex-1 overflow-y-auto">
+              {wishlistItems.length === 0 ? (
+                <div className="p-6">
+                  <p className="text-muted-foreground text-sm mb-6">
+                    You haven't added any items to your wishlist yet. Browse our collection and click the heart icon to save items you love.
+                  </p>
+                  <Link 
+                    to="/collection/western" 
+                    onClick={() => setOffCanvasType(null)}
+                    className="inline-block px-6 py-3 bg-foreground text-background text-sm tracking-wider hover:bg-foreground/90 transition-colors"
+                  >
+                    Browse Collection
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {wishlistItems.map((item) => (
+                    <div key={item.id} className="p-4 flex gap-4">
+                      <Link to={`/product/${item.id}`} onClick={() => setOffCanvasType(null)} className="shrink-0">
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          className="w-20 h-20 object-cover rounded-md"
+                        />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link to={`/product/${item.id}`} onClick={() => setOffCanvasType(null)}>
+                          <h3 className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
+                            {item.name}
+                          </h3>
+                        </Link>
+                        <p className="text-sm text-muted-foreground mt-1">{item.category}</p>
+                        <p className="text-sm font-medium mt-1">{formatPrice(item.price)}</p>
+                        <button
+                          onClick={() => removeFromWishlist(item.id)}
+                          className="mt-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 size={12} />
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+            {wishlistItems.length > 0 && (
+              <div className="p-4 border-t border-border bg-muted/30">
+                <Link 
+                  to="/collection/western"
+                  onClick={() => setOffCanvasType(null)}
+                  className="block w-full text-center py-3 border border-foreground text-foreground text-sm tracking-wider hover:bg-foreground hover:text-background transition-colors"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

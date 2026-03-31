@@ -17,7 +17,6 @@ const WesternCollection = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("featured");
   const [gridSize, setGridSize] = useState<"small" | "large">("large");
-  const [showNewOnly, setShowNewOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const categories = ["Necklaces", "Earrings", "Bracelets", "Rings"];
@@ -31,7 +30,6 @@ const WesternCollection = () => {
 
   const filteredProducts = westernProducts.filter(p => {
     if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
-    if (showNewOnly && !p.isNew) return false;
     return true;
   });
 
@@ -40,16 +38,16 @@ const WesternCollection = () => {
       case "price-low": return a.price - b.price;
       case "price-high": return b.price - a.price;
       case "newest": return a.isNew ? -1 : b.isNew ? 1 : 0;
+      case "popularity": return (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0);
       default: return 0;
     }
   });
 
   const clearFilters = () => {
     setSelectedCategories([]);
-    setShowNewOnly(false);
   };
 
-  const activeFilterCount = selectedCategories.length + (showNewOnly ? 1 : 0);
+  const activeFilterCount = selectedCategories.length;
 
   const features = [
     { icon: RotateCcw, title: "EASY RETURNS", subtitle: "REQUEST WITHIN 72 HRS OF DELIVERY" },
@@ -95,24 +93,6 @@ const WesternCollection = () => {
                   </SheetHeader>
 
                   <div className="space-y-6">
-                    {/* New Arrivals */}
-                    <div>
-                      <h3 className="text-base font-bold mb-3 text-western-text">New Arrivals</h3>
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id="new-arrivals"
-                          checked={showNewOnly}
-                          onCheckedChange={(checked) => setShowNewOnly(checked === true)}
-                          className="border-western-border data-[state=checked]:bg-western-accent data-[state=checked]:border-western-accent"
-                        />
-                        <Label htmlFor="new-arrivals" className="text-base font-medium text-western-text cursor-pointer">
-                          Show New Arrivals Only
-                        </Label>
-                      </div>
-                    </div>
-
-                    <Separator className="bg-western-border" />
-
                     {/* Category */}
                     <div>
                       <h3 className="text-base font-bold mb-3 text-western-text">Category</h3>
@@ -171,6 +151,7 @@ const WesternCollection = () => {
               <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-2 text-base font-semibold bg-western-card border border-western-border text-western-text cursor-pointer focus:outline-none focus:border-western-accent rounded">
                 <option value="featured">Featured</option>
+                <option value="popularity">Popularity</option>
                 <option value="newest">Newest</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
@@ -189,12 +170,6 @@ const WesternCollection = () => {
           {/* Active filter chips */}
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
-              {showNewOnly && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-western-accent/10 text-western-accent border border-western-accent/30 rounded-full">
-                  New Arrivals
-                  <X size={12} className="cursor-pointer" onClick={() => setShowNewOnly(false)} />
-                </span>
-              )}
               {selectedCategories.map(cat => (
                 <span key={cat} className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-western-accent/10 text-western-accent border border-western-accent/30 rounded-full">
                   {cat}
