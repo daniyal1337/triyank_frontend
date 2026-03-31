@@ -9,7 +9,7 @@ const promoMessages = [
 
 const PromoTicker = () => {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-western-accent text-white py-2 overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-western-accent text-white py-2 overflow-hidden">
       <motion.div
         className="flex whitespace-nowrap"
         animate={{
