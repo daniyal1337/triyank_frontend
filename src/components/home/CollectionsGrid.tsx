@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
@@ -42,6 +42,15 @@ const CollectionsGrid = () => {
 
   const go = (dir: 1 | -1) => {
     setActiveIndex((prev) => wrapIndex(prev + dir));
+  };
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x > threshold) {
+      go(-1);
+    } else if (info.offset.x < -threshold) {
+      go(1);
+    }
   };
 
   const getOffset = (index: number) => {
@@ -119,7 +128,9 @@ const CollectionsGrid = () => {
 
           <div className="lg:col-span-9">
             <div className="relative">
-              <div className="relative h-[360px] sm:h-[420px] md:h-[520px] flex items-center justify-center overflow-hidden">
+              <div 
+                className="relative h-[360px] sm:h-[420px] md:h-[520px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
+              >
                 {collections.map((collection, index) => {
                   const offset = getOffset(index);
                   if (offset === null) return null;
@@ -138,7 +149,11 @@ const CollectionsGrid = () => {
                         duration: 0.55,
                         ease: [0.22, 1, 0.36, 1],
                       }}
-                      className="absolute"
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
+                      dragElastic={0.2}
+                      onDragEnd={handleDragEnd}
+                      className="absolute touch-pan-y select-none"
                       style={{
                         zIndex: pos.zIndex,
                         filter: pos.filter,
@@ -146,18 +161,20 @@ const CollectionsGrid = () => {
                     >
                       <Link
                         to={collection.link}
-                        className="group block"
+                        className="group block pointer-events-auto"
                         aria-label={`Explore ${collection.name}`}
+                        draggable={false}
                       >
                         <div className="relative w-[240px] sm:w-[290px] md:w-[380px] aspect-[4/5] rounded-xl overflow-hidden shadow-[0_18px_55px_rgba(0,0,0,0.16)]">
                           <img
                             src={collection.image}
                             alt={collection.name}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 pointer-events-none"
+                            draggable={false}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent pointer-events-none" />
 
-                          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
+                          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7 pointer-events-none">
                             <h3 className="text-white text-lg md:text-xl font-serif tracking-wide uppercase drop-shadow">
                               {collection.name}
                             </h3>

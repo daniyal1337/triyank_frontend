@@ -1,28 +1,71 @@
-import { Package, ShoppingCart, IndianRupee, AlertTriangle } from "lucide-react";
-import { Product, formatPrice } from "@/data/products";
+import { useState, useEffect } from "react";
+import { Package, ShoppingCart, IndianRupee, AlertTriangle, Loader2 } from "lucide-react";
+import { formatPrice } from "@/data/products";
 
-interface Order {
-  id: string;
-  total: number;
-  status: string;
+interface DashboardData {
+  total_products: number;
+  total_orders: number;
+  pending_orders: number;
+  total_revenue: string;
 }
 
-interface AdminStatsProps {
-  products: Product[];
-  orders: Order[];
-}
+const AdminStats = () => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const AdminStats = ({ products, orders }: AdminStatsProps) => {
-  const activeProducts = products.length;
-  const categories = [...new Set(products.map(p => p.category))].length;
-  const totalRevenue = orders.filter(o => o.status !== "cancelled").reduce((sum, o) => sum + o.total, 0);
-  const pendingOrders = orders.filter(o => o.status === "pending").length;
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/dashboard/`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white dark:bg-card rounded-xl p-5 border border-border shadow-sm flex items-center justify-center h-28">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="bg-white dark:bg-card rounded-xl p-5 border border-border shadow-sm">
+        <p className="text-sm text-red-500">Failed to load dashboard data</p>
+      </div>
+    );
+  }
 
   const stats = [
-    { label: "Total Catalog",    value: activeProducts, sub: "Products managed", icon: Package, bg: "bg-secondary", text: "text-foreground" },
-    { label: "Total Orders",    value: orders.length,  sub: `${pendingOrders} pending`, icon: ShoppingCart, bg: "bg-secondary", text: "text-foreground" },
-    { label: "Revenue",         value: formatPrice(totalRevenue), sub: "All time", icon: IndianRupee, bg: "bg-emerald-100", text: "text-emerald-700" },
-    { label: "Categories",       value: categories, sub: "Active categories", icon: Package, bg: "bg-secondary", text: "text-foreground" },
+    { label: "Total Products", value: data.total_products, sub: "Products in catalog", icon: Package, bg: "bg-secondary", text: "text-foreground" },
+    { label: "Total Orders", value: data.total_orders, sub: "All orders received", icon: ShoppingCart, bg: "bg-secondary", text: "text-foreground" },
+    { label: "Pending Orders", value: data.pending_orders, sub: "Awaiting processing", icon: AlertTriangle, bg: "bg-amber-100", text: "text-amber-700" },
+    { label: "Total Revenue", value: formatPrice(Number(data.total_revenue)), sub: "All time earnings", icon: IndianRupee, bg: "bg-emerald-100", text: "text-emerald-700" },
   ];
 
   return (

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Search, Filter, ArrowUpDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,24 +14,88 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Product, formatPrice, PRODUCT_CATEGORIES } from "@/data/products";
+import { Product, formatPrice, PRODUCT_CATEGORIES, CollectionType } from "@/data/products";
 import ProductFormDialog from "./ProductFormDialog";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProductsTableProps {
-  products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+interface ApiProduct {
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  description: string;
+  main_image: string;
+  collection_type: string;
+  material: string;
+  occasion: string;
+  weight: string;
+  stock: number;
+  is_featured: number;
+  created_at: string;
+  updated_at: string;
+  category: string;
 }
 
 
 
-const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
+const ProductsTable = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterCollection, setFilterCollection] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const apiProducts: ApiProduct[] = await response.json();
+
+        // Transform API data to Product interface
+        const transformedProducts: Product[] = apiProducts.map((apiProduct) => ({
+          id: String(apiProduct.id),
+          name: apiProduct.name,
+          sku: apiProduct.slug.toUpperCase().replace(/-/g, "_"),
+          price: Number(apiProduct.price),
+          image: apiProduct.main_image,
+          category: apiProduct.category,
+          collection: apiProduct.collection_type as CollectionType,
+          description: apiProduct.description,
+          material: apiProduct.material,
+          occasion: apiProduct.occasion,
+          weight: apiProduct.weight,
+          stock: apiProduct.stock,
+          isFeatured: apiProduct.is_featured === 1,
+          status: "active",
+          createdAt: apiProduct.created_at.split("T")[0],
+          updatedAt: apiProduct.updated_at.split("T")[0],
+        }));
+
+        setProducts(transformedProducts);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const filtered = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -40,20 +104,172 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
     return matchSearch && matchCollection && matchCategory;
   });
 
-  const handleSave = (product: Product) => {
-    if (editProduct) {
-      setProducts(prev => prev.map(p => p.id === product.id ? product : p));
-      toast({ title: "Product updated", description: `${product.name} has been updated.` });
-    } else {
-      setProducts(prev => [...prev, product]);
-      toast({ title: "Product added", description: `${product.name} has been added.` });
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-card rounded-xl p-8 border border-border shadow-sm text-center">
+        <p className="text-red-500">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const handleSave = async (product: Product) => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (editProduct) {
+        // For editing, call PUT API
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products/${product.id}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: product.name,
+            slug: product.sku.toLowerCase().replace(/_/g, "-"),
+            price: product.price,
+            description: product.description,
+            main_image: product.image,
+            category: product.category,
+            collection_type: product.collection,
+            material: product.material,
+            occasion: product.occasion,
+            weight: product.weight,
+            stock: product.stock,
+            is_featured: product.isFeatured ? 1 : 0,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update product");
+        }
+
+        const updatedProduct: ApiProduct = await response.json();
+        
+        // Transform the returned API product to Product interface
+        const transformedProduct: Product = {
+          id: String(updatedProduct.id),
+          name: updatedProduct.name,
+          sku: (updatedProduct.slug || product.name.toLowerCase().replace(/\s+/g, "-")).toUpperCase().replace(/-/g, "_"),
+          price: Number(updatedProduct.price),
+          image: updatedProduct.main_image,
+          category: updatedProduct.category,
+          collection: updatedProduct.collection_type as CollectionType,
+          description: updatedProduct.description,
+          material: updatedProduct.material,
+          occasion: updatedProduct.occasion,
+          weight: updatedProduct.weight,
+          stock: updatedProduct.stock,
+          isFeatured: updatedProduct.is_featured === 1,
+          status: "active",
+          createdAt: updatedProduct.created_at.split("T")[0],
+          updatedAt: updatedProduct.updated_at.split("T")[0],
+        };
+
+        setProducts(prev => prev.map(p => p.id === product.id ? transformedProduct : p));
+        toast({ title: "Product updated", description: `${product.name} has been updated.` });
+      } else {
+        // For new product, call POST API
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: product.name,
+            slug: product.sku.toLowerCase().replace(/_/g, "-"),
+            price: product.price,
+            description: product.description,
+            main_image: product.image,
+            category: product.category,
+            collection_type: product.collection,
+            material: product.material,
+            occasion: product.occasion,
+            weight: product.weight,
+            stock: product.stock,
+            is_featured: product.isFeatured ? 1 : 0,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to add product");
+        }
+
+        const newProduct: ApiProduct = await response.json();
+        
+        // Transform the returned API product to Product interface
+        const transformedProduct: Product = {
+          id: String(newProduct.id),
+          name: newProduct.name,
+          sku: (newProduct.slug || product.name.toLowerCase().replace(/\s+/g, "-")).toUpperCase().replace(/-/g, "_"),
+          price: Number(newProduct.price),
+          image: newProduct.main_image,
+          category: newProduct.category,
+          collection: newProduct.collection_type as CollectionType,
+          description: newProduct.description,
+          material: newProduct.material,
+          occasion: newProduct.occasion,
+          weight: newProduct.weight,
+          stock: newProduct.stock,
+          isFeatured: newProduct.is_featured === 1,
+          status: "active",
+          createdAt: newProduct.created_at.split("T")[0],
+          updatedAt: newProduct.updated_at.split("T")[0],
+        };
+
+        setProducts(prev => [...prev, transformedProduct]);
+        toast({ title: "Product added", description: `${product.name} has been added.` });
+      }
+      setEditProduct(null);
+      setFormOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save product",
+        variant: "destructive"
+      });
     }
-    setEditProduct(null);
   };
 
-  const handleDelete = (id: string, name: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    toast({ title: "Product deleted", description: `${name} has been removed.` });
+  const handleDelete = async (id: string, name: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      setProducts(prev => prev.filter(p => p.id !== id));
+      toast({ title: "Product deleted", description: `${name} has been removed.` });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete product",
+        variant: "destructive"
+      });
+    }
   };
 
   const openEdit = (product: Product) => {
@@ -86,6 +302,7 @@ const ProductsTable = ({ products, setProducts }: ProductsTableProps) => {
               <SelectItem value="all">All Collections</SelectItem>
               <SelectItem value="indian">Indian</SelectItem>
               <SelectItem value="western">Western</SelectItem>
+              <SelectItem value="leather">Leather</SelectItem>
               <SelectItem value="both">Both</SelectItem>
             </SelectContent>
           </Select>

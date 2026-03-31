@@ -17,18 +17,35 @@ const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast({ title: "Error", description: "Please fill in all fields", variant: "destructive" });
       return;
     }
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+      localStorage.setItem("token", data.token);
+      toast({ title: "Success", description: "Login successful!" });
       onLogin();
-    }, 800);
+    } catch (error) {
+      toast({ 
+        title: "Login Failed", 
+        description: error instanceof Error ? error.message : "Something went wrong", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

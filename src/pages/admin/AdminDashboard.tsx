@@ -67,7 +67,7 @@ const AdminDashboard = () => {
         <div className="p-6 max-w-[1200px] w-full mx-auto space-y-6 flex-1">
           {activeTab === "dashboard" && (
             <>
-              <AdminStats products={products} orders={orders} />
+              <AdminStats />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-card rounded-xl border border-border p-5 shadow-sm">
                   <h3 className="text-sm font-semibold mb-4 text-foreground/80">Recent Orders</h3>
@@ -105,11 +105,11 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "products" && (
-            <ProductsTable products={products} setProducts={setProducts} />
+            <ProductsTable />
           )}
 
           {activeTab === "orders" && (
-            <OrdersTable orders={orders} setOrders={setOrders} />
+            <OrdersTable />
           )}
 
           {activeTab === "customers" && (
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "analytics" && (
-            <AnalyticsDashboard products={products} orders={orders} />
+            <AnalyticsDashboard />
           )}
 
           {activeTab === "discounts" && (

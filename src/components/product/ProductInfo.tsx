@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Minus, Plus, Check, Heart, Truck, Gem, Shield, RefreshCw, Clock, Wallet } from "lucide-react";
+import { Minus, Plus, Check, Heart, Truck, Gem, Shield, RefreshCw, Clock, Wallet, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { allProducts, formatPrice } from "@/data/products";
@@ -119,6 +119,14 @@ const ProductInfo = () => {
       <div className="mb-6">
         <p className="text-sm text-muted-foreground mb-1">{displayCategory}</p>
         <h1 className="text-2xl md:text-3xl font-light text-foreground mb-2">{displayName}</h1>
+        <div className="flex items-center gap-2 mb-2">
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <Star className="w-4 h-4 fill-amber-200 text-amber-400" />
+          <span className="text-sm text-muted-foreground ml-1">4.5</span>
+        </div>
         <p className="text-xl font-light text-foreground">{displayPrice}</p>
       </div>
 

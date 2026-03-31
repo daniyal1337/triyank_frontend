@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search, Eye, Package, Truck, CheckCircle2, XCircle,
-  RefreshCw, Clock, CreditCard, MapPin, Phone, Mail, User,
+  RefreshCw, Clock, CreditCard, MapPin, Phone, Mail, User, Loader2,
   ChevronDown, ChevronUp, Download, Filter,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  numericId?: number;
   customer: string;
   email: string;
   phone?: string;
@@ -49,6 +50,44 @@ export interface Order {
   pincode?: string;
   trackingNumber?: string;
   notes?: string;
+}
+
+interface ApiOrder {
+  id: number;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  shipping_method: string | null;
+  shipping_cost: string;
+  payment_method: string;
+  payment_status: string;
+  payment_id: string | null;
+  payment_provider: string | null;
+  status: string;
+  subtotal: string;
+  total: string;
+  created_at: string;
+}
+
+interface ApiSummary {
+  total_orders: number;
+  pending: string;
+  processing: string;
+  shipped: string;
+  delivered: string;
+  revenue: string;
+}
+
+interface ApiResponse {
+  summary: ApiSummary;
+  orders: ApiOrder[];
 }
 
 const STATUS_CONFIG: Record<Order["status"], { label: string; color: string; icon: React.ReactNode }> = {
@@ -78,11 +117,6 @@ const ORDER_TIMELINE: Record<Order["status"], string[]> = {
 
 const TIMELINE_STEPS = ["pending", "processing", "shipped", "delivered"];
 
-interface OrdersTableProps {
-  orders: Order[];
-  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-}
-
 const StatusBadge = ({ status }: { status: Order["status"] }) => {
   const cfg = STATUS_CONFIG[status];
   return (
@@ -92,13 +126,69 @@ const StatusBadge = ({ status }: { status: Order["status"] }) => {
   );
 };
 
-const OrdersTable = ({ orders, setOrders }: OrdersTableProps) => {
+const OrdersTable = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [summary, setSummary] = useState<ApiSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPayment, setFilterPayment] = useState<string>("all");
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders");
+        }
+
+        const apiData: ApiResponse = await response.json();
+        
+        // Set summary data
+        setSummary(apiData.summary);
+        
+        // Transform API data to Order interface
+        const transformedOrders: Order[] = apiData.orders.map((apiOrder) => ({
+          id: apiOrder.order_number,
+          numericId: apiOrder.id,
+          customer: apiOrder.customer_name,
+          email: apiOrder.customer_email,
+          phone: apiOrder.customer_phone,
+          items: 1,
+          total: Number(apiOrder.total),
+          subtotal: Number(apiOrder.subtotal),
+          shipping: Number(apiOrder.shipping_cost),
+          status: apiOrder.status as Order["status"],
+          paymentMethod: apiOrder.payment_method.toUpperCase(),
+          paymentStatus: apiOrder.payment_status as Order["paymentStatus"],
+          date: new Date(apiOrder.created_at).toISOString().split("T")[0],
+          address: apiOrder.address_line1 + (apiOrder.address_line2 ? `, ${apiOrder.address_line2}` : ""),
+          city: apiOrder.city,
+          state: apiOrder.state,
+          pincode: apiOrder.pincode,
+        }));
+
+        setOrders(transformedOrders);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filtered = orders.filter(o => {
     const q = search.toLowerCase();
@@ -111,14 +201,49 @@ const OrdersTable = ({ orders, setOrders }: OrdersTableProps) => {
     return matchSearch && matchStatus && matchPayment;
   });
 
-  // Summary counts
-  const counts = orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {} as Record<string, number>);
-  const totalRevenue = orders.filter(o => o.status === "delivered").reduce((s, o) => s + o.total, 0);
+  // Use API summary data for counts
+  const summaryCards = summary ? [
+    { label: "Total Orders", value: summary.total_orders, color: "text-foreground" },
+    { label: "Pending", value: Number(summary.pending), color: "text-amber-600" },
+    { label: "Processing", value: Number(summary.processing), color: "text-blue-600" },
+    { label: "Shipped", value: Number(summary.shipped), color: "text-purple-600" },
+    { label: "Delivered", value: Number(summary.delivered), color: "text-emerald-600" },
+    { label: "Revenue", value: formatPrice(Number(summary.revenue)), color: "text-foreground" },
+  ] : [];
 
-  const handleStatusChange = (orderId: string, status: Order["status"]) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-    if (viewOrder?.id === orderId) setViewOrder(prev => prev ? { ...prev, status } : null);
-    toast({ title: "Order updated", description: `Order ${orderId} marked as ${status}` });
+  const handleStatusChange = async (orderId: string, status: Order["status"]) => {
+    try {
+      const order = orders.find(o => o.id === orderId);
+      if (!order || !order.numericId) {
+        toast({ title: "Error", description: "Order not found", variant: "destructive" });
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/${order.numericId}/status`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update order status");
+      }
+
+      // Update local state after successful API call
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+      if (viewOrder?.id === orderId) setViewOrder(prev => prev ? { ...prev, status } : null);
+      toast({ title: "Order updated", description: `Order ${orderId} marked as ${status}` });
+    } catch (error) {
+      toast({ 
+        title: "Update failed", 
+        description: error instanceof Error ? error.message : "Failed to update status", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleTrackingUpdate = (orderId: string, tracking: string) => {
@@ -126,18 +251,33 @@ const OrdersTable = ({ orders, setOrders }: OrdersTableProps) => {
     if (viewOrder?.id === orderId) setViewOrder(prev => prev ? { ...prev, trackingNumber: tracking } : null);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-card rounded-xl p-8 border border-border shadow-sm text-center">
+        <p className="text-red-500">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      {/* Summary Cards */}
+      {/* Summary Cards - Using API Summary Data */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-        {[
-          { label: "Total Orders", value: orders.length, color: "text-foreground" },
-          { label: "Pending", value: counts.pending || 0, color: "text-amber-600" },
-          { label: "Processing", value: counts.processing || 0, color: "text-blue-600" },
-          { label: "Shipped", value: counts.shipped || 0, color: "text-purple-600" },
-          { label: "Delivered", value: counts.delivered || 0, color: "text-emerald-600" },
-          { label: "Revenue", value: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalRevenue), color: "text-foreground" },
-        ].map(card => (
+        {summaryCards.map(card => (
           <div key={card.label} className="bg-white dark:bg-card border border-border rounded-xl p-3 shadow-sm">
             <p className="text-[11px] text-muted-foreground">{card.label}</p>
             <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, ShoppingBag, Check } from "lucide-react";
+import { Heart, ShoppingBag, Check, Star } from "lucide-react";
 import { useState } from "react";
 import { Product, formatPrice } from "@/data/products";
 import { cn } from "@/lib/utils";
@@ -130,6 +130,14 @@ const ProductCard = ({ product, variant = "western", showAddToCart = true }: Pro
         )}>
           {product.name}
         </h3>
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+          <Star className="w-3 h-3 fill-amber-200 text-amber-400" />
+          <span className="text-xs text-muted-foreground ml-1">4.5</span>
+        </div>
         <p className={cn(
           "text-sm",
           isIndian ? "text-indian-muted" : "text-western-muted"
