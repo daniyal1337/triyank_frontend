@@ -54,7 +54,7 @@ const CustomerReview = () => {
   };
 
   return (
-    <section className="py-16 px-4 md:px-6 bg-muted/30">
+    <section id="feedback" className="py-16 px-4 md:px-6 bg-muted/30">
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

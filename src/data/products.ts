@@ -67,6 +67,7 @@ export interface Product {
   image: string;
   images?: string[];
   category: string;
+  subcategory?: string;
   collection: CollectionType;
   description: string;
   shortDescription?: string;

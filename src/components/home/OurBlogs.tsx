@@ -1,6 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useCallback } from "react";
+import type { EmblaCarouselType } from "embla-carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 // Import blog images - replace with actual blog images
 import blog1 from "@/assets/collection-executive.jpg";
@@ -38,6 +45,23 @@ const blogPosts = [
 ];
 
 const OurBlogs = () => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
+
+  const onSelect = useCallback((api: EmblaCarouselType) => {
+    setSelectedIndex(api.selectedScrollSnap());
+  }, []);
+
+  const handleSetApi = useCallback(
+    (api: EmblaCarouselType | undefined) => {
+      if (!api) return;
+      setEmblaApi(api);
+      api.on("select", onSelect);
+      onSelect(api);
+    },
+    [onSelect]
+  );
+
   return (
     <section className="py-14 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
@@ -57,7 +81,8 @@ const OurBlogs = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+        {/* Desktop View - Grid */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {blogPosts.map((post, index) => (
             <motion.article
               key={post.id}
@@ -104,6 +129,92 @@ const OurBlogs = () => {
               </Link>
             </motion.article>
           ))}
+        </div>
+
+        {/* Mobile View - Carousel */}
+        <div className="md:hidden relative">
+          <Carousel
+            opts={{ align: "center", loop: true }}
+            setApi={handleSetApi}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {blogPosts.map((post) => (
+                <CarouselItem key={post.id} className="pl-4 basis-full">
+                  <article className="group">
+                    <Link to={post.link} className="block">
+                      <div className="relative overflow-hidden rounded-lg mb-6 aspect-[4/3]">
+                        <img
+                          src={post.image}
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                        <div className="absolute top-4 left-4">
+                          <span className="px-3 py-1 bg-primary/90 text-white text-xs font-medium tracking-wider uppercase rounded-full">
+                            {post.category}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <Calendar className="w-4 h-4" />
+                          <time>{post.date}</time>
+                        </div>
+                        
+                        <h3 className="text-xl font-medium text-foreground leading-tight group-hover:text-primary transition-colors duration-300">
+                          {post.title}
+                        </h3>
+                        
+                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
+                          {post.excerpt}
+                        </p>
+                        
+                        <div className="flex items-center gap-2 text-primary font-medium tracking-wider text-sm group-hover:gap-3 transition-all duration-300">
+                          <span>Read More</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </Link>
+                  </article>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+
+          {/* Mobile Navigation Arrows */}
+          <button
+            onClick={() => emblaApi?.scrollPrev()}
+            className="absolute left-0 top-1/3 -translate-y-1/2 -translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
+          </button>
+
+          <button
+            onClick={() => emblaApi?.scrollNext()}
+            className="absolute right-0 top-1/3 -translate-y-1/2 translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5 text-foreground" />
+          </button>
+
+          {/* Mobile Dot Indicators */}
+          <div className="flex justify-center gap-3 mt-6">
+            {blogPosts.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === selectedIndex
+                    ? "bg-primary scale-125"
+                    : "bg-primary/30 hover:bg-primary/50"
+                }`}
+                aria-label={`Go to blog ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
 
         <motion.div

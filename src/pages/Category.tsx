@@ -1,11 +1,8 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Grid3X3, LayoutGrid, Shield, Truck, RotateCcw, Headphones, SlidersHorizontal, X } from "lucide-react";
-import { Link } from "react-router-dom";
 import Footer from "../components/footer/Footer";
-import { allProducts, formatPrice } from "@/data/products";
-import { useCart } from "@/context/CartContext";
-import { useToast } from "@/hooks/use-toast";
+import { allProducts } from "@/data/products";
 import ProductCard from "@/components/home/ProductCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,15 +13,11 @@ import categoryBanner from "@/assets/western-banner-full.jpg";
 
 const Category = () => {
   const { category } = useParams();
-  const productsRef = useRef<HTMLDivElement>(null);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("featured");
   const [gridSize, setGridSize] = useState<"small" | "large">("large");
   const [filtersOpen, setFiltersOpen] = useState(false);
-
-  const { addToCart } = useCart();
-  const { toast } = useToast();
 
   // Get products for this category
   const categoryProducts = allProducts.filter(
@@ -94,7 +87,7 @@ const Category = () => {
         </div>
       </section>
 
-      <div ref={productsRef} className="px-6 py-12">
+      <div className="px-6 py-12">
         {/* Filter & Sort Bar */}
         <div className="flex justify-between items-center gap-4 mb-8 pb-6 border-b border-border">
           <div className="flex items-center gap-3">

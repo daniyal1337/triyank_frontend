@@ -85,30 +85,26 @@ const SplitHero = () => {
 
       {/* Leather Jewelry Teaser */}
       <div className="bg-[#f5f0e8]">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-10 px-6 py-16 md:py-24">
-          <div className="flex gap-3 shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-[#c9a86c]/30">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-4 px-6 py-3 md:py-4">
+          <div className="flex gap-2 shrink-0">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border border-[#c9a86c]/30">
               <img src={leatherTeaser} alt="Leather Jewelry" className="w-full h-full object-cover" />
             </div>
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-[#c9a86c]/30">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border border-[#c9a86c]/30">
               <img src={westernHero} alt="Leather Collection" className="w-full h-full object-cover" />
             </div>
           </div>
           <div className="text-center md:text-left flex-1">
-            <p className="text-[#c9a86c] text-base tracking-[0.25em] uppercase mb-1 font-bold">Our Specialty</p>
-            <h3 className="text-[#3d3425] text-3xl md:text-4xl font-bold tracking-[0.15em] uppercase mb-2">
+            <p className="text-[#c9a86c] text-sm tracking-[0.2em] uppercase mb-0.5 font-bold">Our Specialty</p>
+            <h3 className="text-[#3d3425] text-xl md:text-2xl font-bold tracking-[0.1em] uppercase">
               Handcrafted Leather Jewelry
             </h3>
-            <p className="text-[#3d3425]/60 text-base md:text-lg leading-relaxed max-w-md font-medium">
-              Each piece is meticulously handcrafted using premium leather, blending rustic charm with modern elegance. 
-              Discover bold, unique accessories that make a statement.
-            </p>
           </div>
           <Link 
             to="/collection/leather" 
-            className="text-[#3d3425] text-sm font-semibold tracking-wider uppercase border-2 border-[#3d3425] hover:bg-[#3d3425] hover:text-white px-8 py-3 transition-all duration-300 shrink-0"
+            className="text-[#3d3425] text-xs font-semibold tracking-wider uppercase border-2 border-[#3d3425] hover:bg-[#3d3425] hover:text-white px-6 py-2 transition-all duration-300 shrink-0"
           >
-            Explore Collection
+            Explore
           </Link>
         </div>
       </div>

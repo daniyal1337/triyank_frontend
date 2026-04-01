@@ -1,5 +1,6 @@
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
+import FeedbackPopup from "../components/FeedbackPopup";
 import SplitHero from "../components/home/SplitHero";
 import ShopByOccasion from "../components/home/ShopByOccasion";
 import CollectionsGrid from "../components/home/CollectionsGrid";
@@ -19,6 +20,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Header />
+      <FeedbackPopup />
       <main className="mt-16">
         <SplitHero />
         <LeatherJewelry />

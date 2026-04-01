@@ -123,8 +123,14 @@ const Testimonials = () => {
     [testimonials[4], testimonials[5]],
   ];
 
+  // For mobile: group testimonials into sets of 4 (2x2 grid)
+  const mobileSlides = [
+    [testimonials[0], testimonials[1], testimonials[2], testimonials[3]],
+    [testimonials[4], testimonials[5]],
+  ];
+
   return (
-    <section className="py-14 px-4 md:px-6 bg-muted/30">
+    <section id="testimonials" className="py-14 px-4 md:px-6 bg-muted/30">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -201,14 +207,15 @@ const Testimonials = () => {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {/* Slide 1 - All 4 cards in 2x2 grid */}
-              <CarouselItem className="pl-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {testimonials.map((testimonial) => (
-                    <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-                  ))}
-                </div>
-              </CarouselItem>
+              {mobileSlides.map((slide, slideIndex) => (
+                <CarouselItem key={slideIndex} className="pl-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {slide.map((testimonial) => (
+                      <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+                    ))}
+                  </div>
+                </CarouselItem>
+              ))}
             </CarouselContent>
           </Carousel>
 
@@ -228,6 +235,22 @@ const Testimonials = () => {
           >
             <ChevronRight className="w-5 h-5 text-foreground" />
           </button>
+
+          {/* Mobile Dot Indicators */}
+          <div className="flex justify-center gap-3 mt-6">
+            {mobileSlides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === selectedIndex
+                    ? "bg-primary scale-125"
+                    : "bg-primary/30 hover:bg-primary/50"
+                }`}
+                aria-label={`Go to testimonial slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

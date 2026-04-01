@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator 
@@ -22,15 +21,24 @@ const ProductFeatures = () => (
     <div className="flex justify-around items-center">
       <div className="flex flex-col items-center gap-2">
         <Truck className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
-        <span className="text-xs text-[#666] text-center">Free Shipping</span>
+        <span className="text-xs text-[#666] text-center leading-tight">
+          <span className="md:hidden">Free<br/>Shipping</span>
+          <span className="hidden md:inline">Free Shipping</span>
+        </span>
       </div>
       <div className="flex flex-col items-center gap-2">
         <Shield className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
-        <span className="text-xs text-[#666] text-center">Skin Safe Jewellery</span>
+        <span className="text-xs text-[#666] text-center leading-tight">
+          <span className="md:hidden">Skin Safe<br/>Jewellery</span>
+          <span className="hidden md:inline">Skin Safe Jewellery</span>
+        </span>
       </div>
       <div className="flex flex-col items-center gap-2">
         <Gem className="w-6 h-6 text-[#666]" strokeWidth={1.5} />
-        <span className="text-xs text-[#666] text-center">18K Gold Tone Plated</span>
+        <span className="text-xs text-[#666] text-center leading-tight">
+          <span className="md:hidden">18K Gold<br/>Tone Plated</span>
+          <span className="hidden md:inline">18K Gold Tone Plated</span>
+        </span>
       </div>
     </div>
   </div>
@@ -57,6 +65,7 @@ const ProductServices = () => (
 
 const ProductInfo = () => {
   const { productId } = useParams();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -92,6 +101,16 @@ const ProductInfo = () => {
   const displayCategory = product?.category || "Category";
   const displayPrice = product ? formatPrice(product.price) : "₹0";
 
+  const handleGoToTestimonials = () => {
+    const el = document.getElementById("testimonials");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    navigate("/#testimonials");
+  };
+
   return (
     <div className="space-y-0">
       {/* Breadcrumb - Show only on desktop */}
@@ -119,14 +138,19 @@ const ProductInfo = () => {
       <div className="mb-6">
         <p className="text-sm text-muted-foreground mb-1">{displayCategory}</p>
         <h1 className="text-2xl md:text-3xl font-light text-foreground mb-2">{displayName}</h1>
-        <div className="flex items-center gap-2 mb-2">
+        <button
+          type="button"
+          onClick={handleGoToTestimonials}
+          className="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+          aria-label="View testimonials"
+        >
           <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
           <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
           <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
           <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
           <Star className="w-4 h-4 fill-amber-200 text-amber-400" />
           <span className="text-sm text-muted-foreground ml-1">4.5</span>
-        </div>
+        </button>
         <p className="text-xl font-light text-foreground">{displayPrice}</p>
       </div>
 
