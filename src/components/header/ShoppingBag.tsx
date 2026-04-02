@@ -20,14 +20,16 @@ interface ShoppingBagProps {
   onClose: () => void;
   cartItems: CartItem[];
   updateQuantity: (id: number, newQuantity: number) => void;
-  onViewFavorites?: () => void;
+  onViewWishlist?: () => void;
+  onViewCart?: () => void;
   showWishlist?: boolean;
 }
 
-const ShoppingBag = ({ isOpen, onClose, cartItems, updateQuantity, onViewFavorites, showWishlist = false }: ShoppingBagProps) => {
+const ShoppingBag = ({ isOpen, onClose, cartItems, updateQuantity, onViewWishlist, onViewCart, showWishlist = false }: ShoppingBagProps) => {
   const { items: wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const panelBackgroundColor = "rgb(221, 212, 205)";
   
   if (!isOpen) return null;
 
@@ -45,7 +47,7 @@ const ShoppingBag = ({ isOpen, onClose, cartItems, updateQuantity, onViewFavorit
       />
       
       {/* Off-canvas panel */}
-      <div className="absolute right-0 top-0 h-screen w-96 border-l border-border animate-slide-in-right flex flex-col" style={{ backgroundColor: 'rgb(182, 165, 153)' }}>
+      <div className="absolute right-0 top-0 h-screen w-96 border-l border-border animate-slide-in-right flex flex-col" style={{ backgroundColor: panelBackgroundColor }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#1a1410]/20">
           <h2 className="text-lg font-light text-[#1a1410]">Shopping Bag</h2>
@@ -63,7 +65,7 @@ const ShoppingBag = ({ isOpen, onClose, cartItems, updateQuantity, onViewFavorit
           {/* Tab Navigation */}
           <div className="flex border-b border-[#1a1410]/20 mb-6">
             <button
-              onClick={() => onViewFavorites?.()}
+              onClick={() => onViewWishlist?.()}
               className={`flex-1 py-3 text-sm font-light transition-colors ${
                 showWishlist
                   ? "text-[#1a1410] border-b-2 border-[#1a1410]"
@@ -73,12 +75,7 @@ const ShoppingBag = ({ isOpen, onClose, cartItems, updateQuantity, onViewFavorit
               Wishlist ({wishlistItems.length})
             </button>
             <button
-              onClick={() => {
-                // Switch to cart view
-                if (onViewFavorites) {
-                  onViewFavorites();
-                }
-              }}
+              onClick={() => onViewCart?.()}
               className={`flex-1 py-3 text-sm font-light transition-colors ${
                 !showWishlist
                   ? "text-[#1a1410] border-b-2 border-[#1a1410]"

@@ -83,14 +83,14 @@ const CustomerReview = () => {
   };
 
   return (
-    <section id="feedback" className="py-16 px-4 md:px-6 bg-muted/30">
+    <section id="feedback" className="py-12 px-4 md:px-6 bg-muted/30">
       <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
           <h2 className="text-2xl md:text-3xl font-medium tracking-wider text-foreground mb-2">
             Share Your Experience
@@ -98,7 +98,7 @@ const CustomerReview = () => {
           <p className="text-muted-foreground">
             We value your feedback. Rate your experience and help us improve.
           </p>
-          <div className="w-16 h-px bg-primary mx-auto mt-4" />
+          <div className="w-16 h-px bg-primary mx-auto mt-3" />
         </motion.div>
 
         <motion.div
@@ -106,7 +106,7 @@ const CustomerReview = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="bg-white rounded-xl shadow-sm border border-border p-6 md:p-8"
+          className="bg-white rounded-xl shadow-sm border border-border p-5 md:p-6"
         >
           {isSubmitted ? (
             <div className="text-center py-8">
@@ -119,10 +119,10 @@ const CustomerReview = () => {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Star Rating */}
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground mb-3">
+                <p className="text-sm font-medium text-foreground mb-2">
                   How would you rate your experience?
                 </p>
                 <div className="flex items-center justify-center gap-2">
@@ -145,36 +145,36 @@ const CustomerReview = () => {
                     </button>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-sm text-muted-foreground mt-1.5">
                   {rating > 0 && `${rating} out of 5 stars`}
                 </p>
               </div>
 
-              {/* Name Input */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Your Name *
-                </label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="h-12"
-                />
-              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Your Name *
+                  </label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="h-11"
+                  />
+                </div>
 
-              {/* Email Input */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Email (optional)
-                </label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="h-12"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Email (optional)
+                  </label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="h-11"
+                  />
+                </div>
               </div>
 
               {/* Feedback Textarea */}
@@ -186,7 +186,7 @@ const CustomerReview = () => {
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="Tell us about your experience..."
-                  className="min-h-[120px] resize-none"
+                  className="min-h-[96px] resize-none"
                 />
               </div>
 
@@ -194,7 +194,7 @@ const CustomerReview = () => {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 font-medium"
+                className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 font-medium"
               >
                 <Send className="w-4 h-4 mr-2" />
                 {isSubmitting ? "Submitting..." : "Submit Review"}
