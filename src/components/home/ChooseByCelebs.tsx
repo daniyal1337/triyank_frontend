@@ -132,16 +132,16 @@ const ChooseByCelebs = () => {
             <button
               onClick={() => emblaApi?.scrollPrev()}
               aria-label="Previous"
-              className="absolute left-0 top-[45%] -translate-y-1/2 -translate-x-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+              className="absolute left-0 top-[45%] -translate-y-1/2 -translate-x-2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={28} />
             </button>
             <button
               onClick={() => emblaApi?.scrollNext()}
               aria-label="Next"
-              className="absolute right-0 top-[45%] -translate-y-1/2 translate-x-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+              className="absolute right-0 top-[45%] -translate-y-1/2 translate-x-2 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={28} />
             </button>
           </Carousel>
 

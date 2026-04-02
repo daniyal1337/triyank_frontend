@@ -13,9 +13,12 @@ const CustomerReview = () => {
   const [email, setEmail] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const apiBaseUrl = (import.meta.env.VITE_BACKEND_API_URL as string | undefined) || "";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (rating === 0) {
@@ -36,21 +39,47 @@ const CustomerReview = () => {
       return;
     }
 
-    // Simulate submission
-    setIsSubmitted(true);
-    toast({
-      title: "Thank you for your feedback!",
-      description: "Your review has been submitted successfully.",
-    });
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(`${apiBaseUrl}/api/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          rating,
+          feedback: feedback.trim(),
+        }),
+      });
 
-    // Reset after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setRating(0);
-      setName("");
-      setEmail("");
-      setFeedback("");
-    }, 3000);
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      setIsSubmitted(true);
+      toast({
+        title: "Thank you for your feedback!",
+        description: "Your review has been submitted successfully.",
+      });
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setRating(0);
+        setName("");
+        setEmail("");
+        setFeedback("");
+      }, 3000);
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Could not submit your feedback. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -164,10 +193,11 @@ const CustomerReview = () => {
               {/* Submit Button */}
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 font-medium"
               >
                 <Send className="w-4 h-4 mr-2" />
-                Submit Review
+                {isSubmitting ? "Submitting..." : "Submit Review"}
               </Button>
             </form>
           )}

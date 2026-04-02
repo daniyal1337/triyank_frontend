@@ -5,6 +5,8 @@ import {
   ShoppingCart,
   BarChart2,
   Settings,
+  MessageSquare,
+  MessageCircle,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
@@ -21,6 +23,8 @@ const navItems = [
   { id: "dashboard", label: "Home", icon: Home },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "products", label: "Products", icon: Tag },
+  { id: "feedback", label: "Feedback", icon: MessageCircle },
+  { id: "contact", label: "Contact", icon: MessageSquare },
   { id: "analytics", label: "Analytics", icon: BarChart2 },
   { id: "settings", label: "Settings", icon: Settings },
 ];

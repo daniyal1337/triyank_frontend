@@ -8,12 +8,39 @@ import { Send } from "lucide-react";
 
 const ContactUs = () => {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const apiBaseUrl = (import.meta.env.VITE_BACKEND_API_URL as string | undefined) || "";
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name && form.email && form.message) {
+
+    if (!form.name || !form.email || !form.message) return;
+
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(`${apiBaseUrl}/api/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
       toast.success("Thank you for reaching out! We'll get back to you soon.");
       setForm({ name: "", email: "", message: "" });
+    } catch {
+      toast.error("Could not send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,10 +92,11 @@ const ContactUs = () => {
             <div className="text-center">
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="bg-background text-foreground hover:bg-background/90 tracking-wider gap-2 border-none"
               >
                 <Send className="w-4 h-4" />
-                SEND MESSAGE
+                {isSubmitting ? "SENDING..." : "SEND MESSAGE"}
               </Button>
             </div>
           </form>

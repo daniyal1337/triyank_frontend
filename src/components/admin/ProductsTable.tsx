@@ -98,7 +98,7 @@ const ProductsTable = () => {
   }, []);
 
   const filtered = products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase()) ?? false;
     const matchCollection = filterCollection === "all" || p.collection === filterCollection;
     const matchCategory = filterCategory === "all" || p.category === filterCategory;
     return matchSearch && matchCollection && matchCategory;
@@ -164,7 +164,7 @@ const ProductsTable = () => {
         const transformedProduct: Product = {
           id: String(updatedProduct.id),
           name: updatedProduct.name,
-          sku: (updatedProduct.slug || product.name.toLowerCase().replace(/\s+/g, "-")).toUpperCase().replace(/-/g, "_"),
+          sku: (updatedProduct.slug || updatedProduct.name?.toLowerCase().replace(/\s+/g, "-") || product.sku).toUpperCase().replace(/-/g, "_"),
           price: Number(updatedProduct.price),
           image: updatedProduct.main_image,
           category: updatedProduct.category,
@@ -176,8 +176,8 @@ const ProductsTable = () => {
           stock: updatedProduct.stock,
           isFeatured: updatedProduct.is_featured === 1,
           status: "active",
-          createdAt: updatedProduct.created_at.split("T")[0],
-          updatedAt: updatedProduct.updated_at.split("T")[0],
+          createdAt: updatedProduct.created_at?.split("T")[0] || product.createdAt || new Date().toISOString().split("T")[0],
+          updatedAt: updatedProduct.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0],
         };
 
         setProducts(prev => prev.map(p => p.id === product.id ? transformedProduct : p));
@@ -216,7 +216,7 @@ const ProductsTable = () => {
         const transformedProduct: Product = {
           id: String(newProduct.id),
           name: newProduct.name,
-          sku: (newProduct.slug || product.name.toLowerCase().replace(/\s+/g, "-")).toUpperCase().replace(/-/g, "_"),
+          sku: (newProduct.slug || newProduct.name?.toLowerCase().replace(/\s+/g, "-") || product.sku).toUpperCase().replace(/-/g, "_"),
           price: Number(newProduct.price),
           image: newProduct.main_image,
           category: newProduct.category,
@@ -228,8 +228,8 @@ const ProductsTable = () => {
           stock: newProduct.stock,
           isFeatured: newProduct.is_featured === 1,
           status: "active",
-          createdAt: newProduct.created_at.split("T")[0],
-          updatedAt: newProduct.updated_at.split("T")[0],
+          createdAt: newProduct.created_at?.split("T")[0] || new Date().toISOString().split("T")[0],
+          updatedAt: newProduct.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0],
         };
 
         setProducts(prev => [...prev, transformedProduct]);

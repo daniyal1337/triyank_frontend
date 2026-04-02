@@ -6,6 +6,8 @@ import AdminStats from "@/components/admin/AdminStats";
 import ProductsTable from "@/components/admin/ProductsTable";
 import OrdersTable, { Order } from "@/components/admin/OrdersTable";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
+import FeedbackTable from "@/components/admin/FeedbackTable";
+import ContactTable from "@/components/admin/ContactTable";
 import AdminLogin from "./AdminLogin";
 import { cn } from "@/lib/utils";
 
@@ -121,6 +123,14 @@ const AdminDashboard = () => {
 
           {activeTab === "analytics" && (
             <AnalyticsDashboard />
+          )}
+
+          {activeTab === "feedback" && (
+            <FeedbackTable />
+          )}
+
+          {activeTab === "contact" && (
+            <ContactTable />
           )}
 
           {activeTab === "discounts" && (

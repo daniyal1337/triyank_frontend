@@ -2,18 +2,12 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import westernHero from "@/assets/western-collection-hero.jpg";
 import indianHero from "@/assets/indian-collection-hero.jpg";
-import triyanLogo from "@/assets/triyank-logo-small.png";
 import leatherTeaser from "@/assets/leather-jewelry-banner.jpg";
 
 const SplitHero = () => {
   return (
     <div>
       <section className="relative flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
-        {/* Centered logo at top — desktop only */}
-        <div className="hidden md:block absolute top-9 left-1/2 -translate-x-1/2 z-20">
-          <img src={triyanLogo} alt="Triyank" className="h-12 md:h-16 w-auto drop-shadow-lg" />
-        </div>
-
         {/* Western Collection - Left Side */}
         <Link 
           to="/collection/western"

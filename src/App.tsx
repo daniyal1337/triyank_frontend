@@ -9,6 +9,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import RouteWrapper from "./components/RouteWrapper";
 import WhatsAppSubscribePopup from "./components/WhatsAppSubscribePopup";
+import WhatsAppFloatingButton from "./components/WhatsAppFloatingButton";
 import PromoTicker from "./components/header/PromoTicker";
 import Header from "./components/header/Header";
 import Index from "./pages/Index";
@@ -74,6 +75,7 @@ const AppContent = () => {
           </Routes>
         </RouteWrapper>
         <ScrollToTopButton />
+        <WhatsAppFloatingButton />
         <WhatsAppSubscribePopup />
       </div>
     </>

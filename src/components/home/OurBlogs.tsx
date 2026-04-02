@@ -189,7 +189,7 @@ const OurBlogs = () => {
             className="absolute left-0 top-1/3 -translate-y-1/2 -translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
             aria-label="Previous"
           >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
+            <ChevronLeft className="w-8 h-8 text-foreground" />
           </button>
 
           <button
@@ -197,7 +197,7 @@ const OurBlogs = () => {
             className="absolute right-0 top-1/3 -translate-y-1/2 translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
             aria-label="Next"
           >
-            <ChevronRight className="w-5 h-5 text-foreground" />
+            <ChevronRight className="w-8 h-8 text-foreground" />
           </button>
 
           {/* Mobile Dot Indicators */}

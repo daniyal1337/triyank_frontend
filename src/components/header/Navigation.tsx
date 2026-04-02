@@ -1,7 +1,7 @@
 import { ArrowRight, X, Plus, Minus, Heart, MessageCircle, Search, ShoppingBag as ShoppingBagIcon, ChevronDown, Trash2, ShoppingCart, ArrowUpRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ShoppingBag from "./ShoppingBag";
+import ShoppingBag from "./ShoppingBag.tsx";
 import triyanLogoSmall from "@/assets/triyank-logo-small.png";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -55,9 +55,8 @@ const Navigation = () => {
     setIsSearchOpen(false);
     setSearchQuery("");
   };
-  const [offCanvasType, setOffCanvasType] = useState<'favorites' | null>(null);
+  const [offCanvasType, setOffCanvasType] = useState<'favorites' | 'cart' | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isShoppingBagOpen, setIsShoppingBagOpen] = useState(false);
   const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [expandedWesternCategories, setExpandedWesternCategories] = useState<string[]>([]);
@@ -145,15 +144,15 @@ const Navigation = () => {
   const categoryMenuItems = [
     {
       name: "WESTERN JEWELLERY",
-      subcategories: ["Western Necklaces", "Western Earrings", "Western Bracelets", "Western Rings", "Western Anklets", "Western Hair Accessories"]
+      subcategories: ["Necklaces", "Earrings", "Bracelets", "Rings", "Anklets", "Hair Accessories"]
     },
     {
       name: "TRADITIONAL JEWELLERY", 
-      subcategories: ["Traditional Necklaces", "Traditional Earrings", "Traditional Bangles", "Traditional Rings", "Traditional Toe Rings", "Traditional Hair Accessories"]
+      subcategories: ["Necklaces", "Earrings", "Bangles", "Rings", "Toe Rings", "Hair Accessories"]
     },
     {
       name: "LEATHER JEWELLERY",
-      subcategories: ["Leather Necklaces", "Leather Earrings", "Leather Bracelets", "Leather Rings", "Leather Anklets", "Leather Hair Accessories"]
+      subcategories: ["Necklaces", "Earrings", "Bracelets", "Rings", "Anklets", "Hair Accessories"]
     }
   ];
 
@@ -223,13 +222,24 @@ const Navigation = () => {
             {/* Dropdown Menu */}
             {isCategoryDropdownOpen && (
               <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[800px] z-50">
-                <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-6">
-                  <div className="grid grid-cols-3 gap-6">
-                    {categoryMenuItems.map((category) => (
-                      <div key={category.name}>
+                <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+                  <div className="grid grid-cols-3">
+                    {categoryMenuItems.map((category, index) => (
+                      <div 
+                        key={category.name} 
+                        className={`p-6 ${index < 2 ? 'border-r border-gray-200' : ''} ${
+                          category.name.includes('WESTERN') ? 'bg-[#c9a86c]/10' :
+                          category.name.includes('TRADITIONAL') ? 'bg-[#8b4513]/10' :
+                          'bg-[#8b6f47]/10'
+                        }`}
+                      >
                         <Link
                           to={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                          className="block text-sm font-bold text-[#1a1410] hover:text-primary transition-colors duration-200 mb-4 uppercase tracking-wide"
+                          className={`block text-sm font-bold hover:opacity-80 transition-opacity duration-200 mb-4 uppercase tracking-wide ${
+                            category.name.includes('WESTERN') ? 'text-[#3d3425]' :
+                            category.name.includes('TRADITIONAL') ? 'text-[#5c1a1a]' :
+                            'text-[#4a3728]'
+                          }`}
                         >
                           {category.name}
                         </Link>
@@ -238,7 +248,11 @@ const Navigation = () => {
                             <Link
                               key={subcategory}
                               to={`/category/${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
-                              className="block text-sm text-gray-600 hover:text-[#1a1410] hover:font-medium transition-colors duration-200 py-1"
+                              className={`block text-sm transition-colors duration-200 py-1 ${
+                                category.name.includes('WESTERN') ? 'text-[#3d3425]/70 hover:text-[#3d3425]' :
+                                category.name.includes('TRADITIONAL') ? 'text-[#5c1a1a]/70 hover:text-[#5c1a1a]' :
+                                'text-[#4a3728]/70 hover:text-[#4a3728]'
+                              }`}
                             >
                               {subcategory}
                             </Link>
@@ -262,22 +276,6 @@ const Navigation = () => {
 
         {/* Right icons */}
         <div className="flex items-center space-x-3 md:space-x-3">
-          {/* WhatsApp - Desktop only */}
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden md:flex group relative p-2 md:p-2.5 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] transition-all duration-300 transform hover:scale-110 shadow-sm hover:shadow-md"
-            aria-label="Chat on WhatsApp"
-          >
-            <svg
-              viewBox="0 0 32 32"
-              className="w-5 h-5 md:w-5 md:h-5 text-white"
-              fill="currentColor"
-            >
-              <path d="M19.11 17.53c-.25-.13-1.47-.72-1.7-.81-.23-.08-.4-.12-.57.13-.16.25-.65.81-.8.98-.15.16-.29.19-.54.06-.25-.13-1.05-.38-2-.1-.74-.2-1.24-1.12-1.39-1.31-.14-.2-.02-.31.1-.44.12-.12.25-.29.38-.44.13-.15.16-.25.25-.41.08-.16.04-.31-.02-.44-.06-.13-.57-1.38-.78-1.9-.2-.48-.41-.41-.57-.42h-.48c-.16 0-.44.06-.67.31-.23.25-.88.86-.88 2.09 0 1.23.9 2.42 1.02 2.59.12.16 1.78 2.72 4.31 3.81.6.26 1.07.42 1.43.54.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.57.21-1.06.15-1.18-.06-.11-.23-.18-.48-.31zM16 3C8.83 3 3 8.76 3 15.86c0 2.25.61 4.45 1.78 6.39L3 29l6.9-1.8c1.88 1.02 4 1.55 6.16 1.55 7.17 0 13-5.76 13-12.86C29 8.76 23.17 3 16 3zm0 23.46c-2.02 0-3.99-.55-5.68-1.6l-.41-.25-4.1 1.07 1.1-3.97-.27-.4a10.42 10.42 0 0 1-1.73-5.74C4.91 9.98 10.02 4.9 16 4.9s11.09 5.08 11.09 10.97S21.98 26.46 16 26.46z" />
-            </svg>
-          </a>
 
           {/* Search - Increased icon size for mobile */}
           <button 
@@ -293,7 +291,9 @@ const Navigation = () => {
           <button 
             className="group relative p-2 md:p-2.5 rounded-full bg-red-100 hover:bg-red-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Wishlist"
-            onClick={() => setOffCanvasType('favorites')}
+            onClick={() => {
+              setOffCanvasType('favorites');
+            }}
           >
             <Heart className="w-5 h-5 md:w-5 md:h-5 text-red-500 group-hover:text-red-600 transition-colors duration-300" strokeWidth={2} fill={wishlistCount > 0 ? "currentColor" : "none"} />
             <div className="absolute inset-0 rounded-full bg-red-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
@@ -308,7 +308,7 @@ const Navigation = () => {
           <button 
             className="group relative p-2 md:p-2.5 rounded-full bg-orange-100 hover:bg-orange-200 transition-all duration-300 transform hover:scale-110 hover:rotate-12 shadow-sm hover:shadow-md"
             aria-label="Shopping bag"
-            onClick={() => setIsShoppingBagOpen(true)}
+            onClick={() => setOffCanvasType('cart')}
           >
             <ShoppingBagIcon className="w-5 h-5 md:w-5 md:h-5 text-orange-600 group-hover:text-orange-700 transition-colors duration-300" strokeWidth={2} />
             <div className="absolute inset-0 rounded-full bg-orange-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
@@ -324,27 +324,27 @@ const Navigation = () => {
       {/* Search overlay */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setIsSearchOpen(false)}>
-          <div className="absolute top-0 left-0 right-0 bg-background border-b border-border" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute top-0 left-0 right-0 border-b border-border" style={{ backgroundColor: 'rgb(182, 165, 153)' }} onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-8 max-h-[80vh] overflow-y-auto">
               <div className="max-w-2xl mx-auto">
                 <form onSubmit={handleSearchSubmit} className="relative mb-8">
-                  <div className="flex items-center border-b border-border pb-2">
-                    <Search className="w-5 h-5 text-foreground mr-3" />
+                  <div className="flex items-center border-b border-[#1a1410]/30 pb-2">
+                    <Search className="w-5 h-5 text-[#1a1410] mr-3" />
                     <input 
                       ref={searchInputRef}
                       type="text" 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search for jewelry..." 
-                      className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground outline-none text-lg" 
+                      className="flex-1 bg-transparent text-[#1a1410] placeholder:text-[#1a1410]/50 outline-none text-lg" 
                     />
                     {searchQuery && (
                       <button 
                         type="button"
                         onClick={() => setSearchQuery("")}
-                        className="p-1 hover:bg-muted rounded-full"
+                        className="p-1 hover:bg-[#1a1410]/10 rounded-full"
                       >
-                        <X className="w-4 h-4 text-muted-foreground" />
+                        <X className="w-4 h-4 text-[#1a1410]" />
                       </button>
                     )}
                   </div>
@@ -355,7 +355,7 @@ const Navigation = () => {
                   <div className="mb-6">
                     {searchResults.length > 0 ? (
                       <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                        <h3 className="text-sm font-medium text-[#1a1410]/70 mb-3">
                           {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
                         </h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -365,31 +365,31 @@ const Navigation = () => {
                               onClick={() => handleResultClick(product.id)}
                               className="group text-left"
                             >
-                              <div className="relative aspect-square rounded-lg overflow-hidden bg-muted mb-2">
+                              <div className="relative aspect-square rounded-lg overflow-hidden bg-[#1a1410]/10 mb-2">
                                 <img
                                   src={product.image}
                                   alt={product.name}
                                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
                               </div>
-                              <h4 className="text-sm font-medium text-foreground truncate group-hover:text-primary">
+                              <h4 className="text-sm font-medium text-[#1a1410] truncate group-hover:opacity-80">
                                 {product.name}
                               </h4>
-                              <p className="text-sm text-muted-foreground">{formatPrice(product.price)}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{product.category}</p>
+                              <p className="text-sm text-[#1a1410]/70">{formatPrice(product.price)}</p>
+                              <p className="text-xs text-[#1a1410]/60 capitalize">{product.category}</p>
                             </button>
                           ))}
                         </div>
                         {searchResults.length > 8 && (
-                          <p className="text-center text-sm text-muted-foreground">
+                          <p className="text-center text-sm text-[#1a1410]/70">
                             +{searchResults.length - 8} more results
                           </p>
                         )}
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-muted-foreground">No products found for &quot;{searchQuery}&quot;</p>
-                        <p className="text-sm text-muted-foreground mt-2">Try searching for: necklace, earrings, ring, bracelet...</p>
+                        <p className="text-[#1a1410]/70">No products found for &quot;{searchQuery}&quot;</p>
+                        <p className="text-sm text-[#1a1410]/60 mt-2">Try searching for: necklace, earrings, ring, bracelet...</p>
                       </div>
                     )}
                   </div>
@@ -398,13 +398,13 @@ const Navigation = () => {
                 {/* Popular Searches */}
                 {searchQuery.trim() === "" && (
                   <div>
-                    <h3 className="text-foreground text-sm font-light mb-4">Popular Searches</h3>
+                    <h3 className="text-[#1a1410] text-sm font-light mb-4">Popular Searches</h3>
                     <div className="flex flex-wrap gap-3">
                       {popularSearches.map((search, index) => (
                         <button 
                           key={index} 
                           onClick={() => setSearchQuery(search)}
-                          className="text-foreground hover:text-primary text-sm font-light py-2 px-4 border border-border rounded-full transition-colors duration-200 hover:border-primary"
+                          className="text-[#1a1410] hover:text-[#1a1410]/80 text-sm font-light py-2 px-4 border border-[#1a1410]/30 rounded-full transition-colors duration-200 hover:border-[#1a1410]/60"
                         >
                           {search}
                         </button>
@@ -525,7 +525,7 @@ const Navigation = () => {
                                           item.name === "Leather" ? "text-[#8b6f47]" :
                                           "text-[#1a1410]"
                                         }`}>
-                                          {item.name.toUpperCase()} JEWELLERY
+                                          JEWELLERY
                                         </div>
                                       </div>
                                       {category.items.map((subItem) => {
@@ -664,104 +664,13 @@ const Navigation = () => {
 
       {/* Shopping Bag Component */}
       <ShoppingBag 
-        isOpen={isShoppingBagOpen}
-        onClose={() => setIsShoppingBagOpen(false)}
+        isOpen={offCanvasType === 'cart' || offCanvasType === 'favorites'}
+        onClose={() => setOffCanvasType(null)}
         cartItems={bagItems}
         updateQuantity={handleUpdateQuantity}
-        onViewFavorites={() => {
-          setIsShoppingBagOpen(false);
-          setOffCanvasType('favorites');
-        }}
+        onViewFavorites={() => setOffCanvasType('favorites')}
+        showWishlist={offCanvasType === 'favorites'}
       />
-      
-      {/* Favorites Off-canvas overlay */}
-      {offCanvasType === 'favorites' && (
-        <div className="fixed inset-0 z-50 h-screen">
-          <div className="absolute inset-0 bg-black/50 h-screen" onClick={() => setOffCanvasType(null)} />
-          <div className="absolute right-0 top-0 h-screen w-80 md:w-96 bg-background border-l border-border animate-slide-in-right flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-lg font-light text-foreground">Your Wishlist ({wishlistCount})</h2>
-              <button onClick={() => setOffCanvasType(null)} className="p-2 text-foreground hover:text-muted-foreground transition-colors" aria-label="Close">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {wishlistItems.length === 0 ? (
-                <div className="p-6">
-                  <p className="text-muted-foreground text-sm mb-6">
-                    You haven't added any items to your wishlist yet. Browse our collection and click the heart icon to save items you love.
-                  </p>
-                  <Link 
-                    to="/collection/western" 
-                    onClick={() => setOffCanvasType(null)}
-                    className="inline-block px-6 py-3 bg-foreground text-background text-sm tracking-wider hover:bg-foreground/90 transition-colors"
-                  >
-                    Browse Collection
-                  </Link>
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {wishlistItems.map((item) => (
-                    <div key={item.id} className="p-4 flex gap-4">
-                      <Link to={`/product/${item.id}`} onClick={() => setOffCanvasType(null)} className="shrink-0">
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className="w-20 h-20 object-cover rounded-md"
-                        />
-                      </Link>
-                      <div className="flex-1 min-w-0">
-                        <Link to={`/product/${item.id}`} onClick={() => setOffCanvasType(null)}>
-                          <h3 className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
-                            {item.name}
-                          </h3>
-                        </Link>
-                        <p className="text-sm text-muted-foreground mt-1">{item.category}</p>
-                        <p className="text-sm font-medium mt-1">{formatPrice(item.price)}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => {
-                              addToCart(item, 1);
-                              removeFromWishlist(item.id);
-                              toast({ 
-                                title: "Added to bag", 
-                                description: `${item.name} added to your bag.`,
-                                duration: 3000
-                              });
-                            }}
-                            className="flex items-center gap-1 text-xs bg-foreground text-background px-3 py-1.5 rounded hover:bg-foreground/90 transition-colors"
-                          >
-                            <ShoppingCart size={12} />
-                            Add to Cart
-                          </button>
-                          <button
-                            onClick={() => removeFromWishlist(item.id)}
-                            className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 size={12} />
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {wishlistItems.length > 0 && (
-              <div className="p-4 border-t border-border bg-muted/30">
-                <Link 
-                  to="/collection/western"
-                  onClick={() => setOffCanvasType(null)}
-                  className="block w-full text-center py-3 border border-foreground text-foreground text-sm tracking-wider hover:bg-foreground hover:text-background transition-colors"
-                >
-                  Continue Shopping
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 };

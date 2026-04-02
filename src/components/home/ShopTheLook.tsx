@@ -108,8 +108,8 @@ const ShopTheLook = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-4 bg-white/90 hover:bg-white border-0" />
-          <CarouselNext className="right-4 bg-white/90 hover:bg-white border-0" />
+          <CarouselPrevious className="left-4 h-12 w-12 bg-white/90 hover:bg-white border-0" />
+          <CarouselNext className="right-4 h-12 w-12 bg-white/90 hover:bg-white border-0" />
         </Carousel>
       </div>
     </section>

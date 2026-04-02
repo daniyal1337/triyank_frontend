@@ -116,8 +116,8 @@ const InstaReels = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex -left-4 bg-white border-western-gold/20 hover:bg-western-card" />
-          <CarouselNext className="hidden md:flex -right-4 bg-white border-western-gold/20 hover:bg-western-card" />
+          <CarouselPrevious className="hidden md:flex -left-4 h-12 w-12 bg-white border-western-gold/20 hover:bg-western-card" />
+          <CarouselNext className="hidden md:flex -right-4 h-12 w-12 bg-white border-western-gold/20 hover:bg-western-card" />
         </Carousel>
 
         <motion.div

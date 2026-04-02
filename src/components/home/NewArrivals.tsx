@@ -104,24 +104,24 @@ const NewArrivals = () => {
             </CarouselContent>
 
             {/* Desktop arrows */}
-            <CarouselPrevious className="hidden md:flex -left-4 bg-background/80 border-border hover:bg-background" />
-            <CarouselNext className="hidden md:flex -right-4 bg-background/80 border-border hover:bg-background" />
+            <CarouselPrevious className="hidden md:flex -left-4 h-12 w-12 bg-background/80 border-border hover:bg-background" />
+            <CarouselNext className="hidden md:flex -right-4 h-12 w-12 bg-background/80 border-border hover:bg-background" />
           </Carousel>
 
           {/* Mobile arrows */}
           <button
             onClick={() => emblaApi?.scrollPrev()}
             aria-label="Previous"
-            className="md:hidden absolute left-0 top-[40%] -translate-y-1/2 -translate-x-1 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+            className="md:hidden absolute left-0 top-[40%] -translate-y-1/2 -translate-x-1 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={28} />
           </button>
           <button
             onClick={() => emblaApi?.scrollNext()}
             aria-label="Next"
-            className="md:hidden absolute right-0 top-[40%] -translate-y-1/2 translate-x-1 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
+            className="md:hidden absolute right-0 top-[40%] -translate-y-1/2 translate-x-1 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/90 shadow border border-border text-foreground"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={28} />
           </button>
         </div>
 

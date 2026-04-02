@@ -193,10 +193,10 @@ const CollectionsGrid = () => {
                 <button
                   type="button"
                   onClick={() => go(-1)}
-                  className="w-10 h-10 rounded-full border border-border/60 bg-background/80 backdrop-blur flex items-center justify-center hover:bg-foreground hover:text-background transition-colors"
+                  className="w-12 h-12 rounded-full border border-border/60 bg-black/80 backdrop-blur flex items-center justify-center text-white hover:bg-black transition-colors"
                   aria-label="Previous collection"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-6 h-6" />
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -218,10 +218,10 @@ const CollectionsGrid = () => {
                 <button
                   type="button"
                   onClick={() => go(1)}
-                  className="w-10 h-10 rounded-full border border-border/60 bg-background/80 backdrop-blur flex items-center justify-center hover:bg-foreground hover:text-background transition-colors"
+                  className="w-12 h-12 rounded-full border border-border/60 bg-black/80 backdrop-blur flex items-center justify-center text-white hover:bg-black transition-colors"
                   aria-label="Next collection"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-6 h-6" />
                 </button>
               </div>
             </div>

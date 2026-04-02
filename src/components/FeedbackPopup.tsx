@@ -10,9 +10,16 @@ const FeedbackPopup = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  const apiBaseUrl = (import.meta.env.VITE_BACKEND_API_URL as string | undefined) || "";
+
   useEffect(() => {
+    const hasInteracted = localStorage.getItem("feedbackPopupDismissed");
+    if (hasInteracted) return;
+
     const timer = setTimeout(() => {
       setIsOpen(true);
     }, 3000);
@@ -20,7 +27,7 @@ const FeedbackPopup = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       toast({
         title: "Please select a rating",
@@ -37,20 +44,48 @@ const FeedbackPopup = () => {
       return;
     }
 
-    // Submit feedback
-    toast({
-      title: "Thank you for your feedback!",
-      description: "Your review has been submitted successfully.",
-    });
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(`${apiBaseUrl}/api/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          rating,
+          feedback: feedback.trim(),
+        }),
+      });
 
-    // Reset and close
-    setRating(0);
-    setFeedback("");
-    setName("");
-    setIsOpen(false);
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      toast({
+        title: "Thank you for your feedback!",
+        description: "Your review has been submitted successfully.",
+      });
+
+      setRating(0);
+      setFeedback("");
+      setName("");
+      setEmail("");
+      setIsOpen(false);
+    } catch {
+      toast({
+        title: "Something went wrong",
+        description: "Could not submit your feedback. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
+    localStorage.setItem("feedbackPopupDismissed", "true");
     setIsOpen(false);
   };
 
@@ -138,6 +173,19 @@ const FeedbackPopup = () => {
           />
         </div>
 
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email (optional)"
+            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:border-primary text-sm"
+          />
+        </div>
+
         {/* Feedback Textarea */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-foreground mb-2">
@@ -154,9 +202,10 @@ const FeedbackPopup = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
+          disabled={isSubmitting}
           className="w-full bg-foreground text-background hover:bg-foreground/90 font-medium tracking-wider"
         >
-          Submit Feedback
+          {isSubmitting ? "Submitting..." : "Submit Feedback"}
         </Button>
 
         {/* Footer */}

@@ -61,36 +61,52 @@ const testimonials = [
     review:
       "I'm a repeat customer and Triyank never disappoints! Their customer service is amazing and the products are always exactly as shown. Highly recommend to anyone looking for ethnic jewelry!",
   },
+  {
+    id: 7,
+    name: "Ananya",
+    image: testimonial1,
+    rating: 5,
+    review:
+      "Triyank has the most beautiful and unique jewelry designs! The attention to detail is remarkable and the pieces are so comfortable to wear. Love their customer service too!",
+  },
+  {
+    id: 8,
+    name: "Meera",
+    image: testimonial2,
+    rating: 5,
+    review:
+      "Best jewelry shopping experience ever! The website is easy to navigate and the product photos are true to the actual pieces. Will definitely be coming back for more!",
+  },
 ];
 
 const TestimonialCard = ({ testimonial }: { testimonial: typeof testimonials[0] }) => (
   <Card className="border-0 shadow-xl bg-card h-full">
-    <CardContent className="p-4 md:p-8 text-center">
+    <CardContent className="p-4 md:p-6 text-center">
       {/* Stars */}
-      <div className="flex justify-center gap-1 mb-3 md:mb-4">
+      <div className="flex justify-center gap-1 mb-3">
         {[...Array(testimonial.rating)].map((_, i) => (
           <Star
             key={i}
-            className="w-4 h-4 md:w-5 md:h-5 fill-primary text-primary"
+            className="w-4 h-4 fill-primary text-primary"
           />
         ))}
       </div>
 
       {/* Review Text */}
-      <p className="text-muted-foreground leading-relaxed mb-4 md:mb-6 text-sm md:text-base italic line-clamp-4 md:line-clamp-none">
+      <p className="text-muted-foreground leading-relaxed mb-4 text-sm italic line-clamp-4">
         "{testimonial.review}"
       </p>
 
       {/* Avatar */}
       <div className="flex flex-col items-center">
-        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden mb-2 md:mb-3 ring-4 ring-primary/20">
+        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 ring-4 ring-primary/20">
           <img
             src={testimonial.image}
             alt={testimonial.name}
             className="w-full h-full object-cover"
           />
         </div>
-        <h4 className="font-medium text-foreground tracking-wide text-sm md:text-base">
+        <h4 className="font-medium text-foreground tracking-wide text-sm">
           {testimonial.name}
         </h4>
       </div>
@@ -100,38 +116,48 @@ const TestimonialCard = ({ testimonial }: { testimonial: typeof testimonials[0] 
 
 const Testimonials = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
+  const [desktopApi, setDesktopApi] = useState<EmblaCarouselType | null>(null);
+  const [mobileApi, setMobileApi] = useState<EmblaCarouselType | null>(null);
 
   const onSelect = useCallback((api: EmblaCarouselType) => {
     setSelectedIndex(api.selectedScrollSnap());
   }, []);
 
-  const handleSetApi = useCallback(
+  const handleSetDesktopApi = useCallback(
     (api: EmblaCarouselType | undefined) => {
       if (!api) return;
-      setEmblaApi(api);
+      setDesktopApi(api);
       api.on("select", onSelect);
       onSelect(api);
     },
     [onSelect]
   );
 
-  // For desktop: group testimonials into pairs
+  const handleSetMobileApi = useCallback(
+    (api: EmblaCarouselType | undefined) => {
+      if (!api) return;
+      setMobileApi(api);
+      api.on("select", onSelect);
+      onSelect(api);
+    },
+    [onSelect]
+  );
+
+  // For desktop: group testimonials into 4-card slides
   const desktopSlides = [
-    [testimonials[0], testimonials[1]],
-    [testimonials[2], testimonials[3]],
-    [testimonials[4], testimonials[5]],
+    [testimonials[0], testimonials[1], testimonials[2], testimonials[3]],
+    [testimonials[4], testimonials[5], testimonials[6], testimonials[7]],
   ];
 
-  // For mobile: group testimonials into sets of 4 (2x2 grid)
+  // For mobile: group testimonials into 4-card slides (2x2 grid)
   const mobileSlides = [
     [testimonials[0], testimonials[1], testimonials[2], testimonials[3]],
-    [testimonials[4], testimonials[5]],
+    [testimonials[4], testimonials[5], testimonials[6], testimonials[7]],
   ];
 
   return (
     <section id="testimonials" className="py-14 px-4 md:px-6 bg-muted/30">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -145,34 +171,17 @@ const Testimonials = () => {
           <div className="w-20 h-px bg-primary mx-auto" />
         </motion.div>
 
-        {/* Desktop View - 2 cards per slide */}
+        {/* Desktop View - 4 cards per slide with arrows inside carousel */}
         <div className="hidden md:block relative">
-          {/* Navigation Arrows */}
-          <button
-            onClick={() => emblaApi?.scrollPrev()}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
-            aria-label="Previous testimonial"
-          >
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </button>
-
-          <button
-            onClick={() => emblaApi?.scrollNext()}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
-            aria-label="Next testimonial"
-          >
-            <ChevronRight className="w-6 h-6 text-foreground" />
-          </button>
-
           <Carousel
             opts={{ align: "start", loop: true }}
-            setApi={handleSetApi}
-            className="w-full"
+            setApi={handleSetDesktopApi}
+            className="w-full relative"
           >
-            <CarouselContent className="-ml-6">
+            <CarouselContent className="-ml-4">
               {desktopSlides.map((slide, slideIndex) => (
-                <CarouselItem key={slideIndex} className="pl-6">
-                  <div className="grid grid-cols-2 gap-6">
+                <CarouselItem key={slideIndex} className="pl-4">
+                  <div className="grid grid-cols-4 gap-4">
                     {slide.map((testimonial) => (
                       <TestimonialCard key={testimonial.id} testimonial={testimonial} />
                     ))}
@@ -180,6 +189,23 @@ const Testimonials = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
+
+            {/* Navigation Arrows - now inside Carousel */}
+            <button
+              onClick={() => desktopApi?.scrollPrev()}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+              aria-label="Previous testimonial"
+            >
+              <ChevronLeft className="w-10 h-10 text-foreground" />
+            </button>
+
+            <button
+              onClick={() => desktopApi?.scrollNext()}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+              aria-label="Next testimonial"
+            >
+              <ChevronRight className="w-10 h-10 text-foreground" />
+            </button>
           </Carousel>
 
           {/* Dot Indicators */}
@@ -187,7 +213,7 @@ const Testimonials = () => {
             {desktopSlides.map((_, index) => (
               <button
                 key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
+                onClick={() => desktopApi?.scrollTo(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === selectedIndex
                     ? "bg-primary scale-125"
@@ -203,8 +229,8 @@ const Testimonials = () => {
         <div className="md:hidden relative">
           <Carousel
             opts={{ align: "center", loop: true }}
-            setApi={handleSetApi}
-            className="w-full"
+            setApi={handleSetMobileApi}
+            className="w-full relative"
           >
             <CarouselContent className="-ml-4">
               {mobileSlides.map((slide, slideIndex) => (
@@ -217,31 +243,31 @@ const Testimonials = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
+
+            {/* Mobile Navigation Arrows - now inside Carousel */}
+            <button
+              onClick={() => mobileApi?.scrollPrev()}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-8 h-8 text-foreground" />
+            </button>
+
+            <button
+              onClick={() => mobileApi?.scrollNext()}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-8 h-8 text-foreground" />
+            </button>
           </Carousel>
-
-          {/* Mobile Navigation Arrows */}
-          <button
-            onClick={() => emblaApi?.scrollPrev()}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
-          </button>
-
-          <button
-            onClick={() => emblaApi?.scrollNext()}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-110"
-            aria-label="Next"
-          >
-            <ChevronRight className="w-5 h-5 text-foreground" />
-          </button>
 
           {/* Mobile Dot Indicators */}
           <div className="flex justify-center gap-3 mt-6">
             {mobileSlides.map((_, index) => (
               <button
                 key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
+                onClick={() => mobileApi?.scrollTo(index)}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   index === selectedIndex
                     ? "bg-primary scale-125"
