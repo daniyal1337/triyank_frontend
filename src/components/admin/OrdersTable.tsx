@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   Search, Eye, Package, Truck, CheckCircle2, XCircle,
   RefreshCw, Clock, CreditCard, MapPin, Phone, Mail, User, Loader2,
@@ -74,6 +74,18 @@ interface ApiOrder {
   subtotal: string;
   total: string;
   created_at: string;
+  items?: ApiOrderItem[];
+}
+
+interface ApiOrderItem {
+  sku?: string | null;
+  qty?: number | string | null;
+  quantity?: number | string | null;
+  price?: number | string | null;
+  image?: string | null;
+  product_image?: string | null;
+  name?: string | null;
+  product_name?: string | null;
 }
 
 interface ApiSummary {
@@ -89,6 +101,10 @@ interface ApiResponse {
   summary: ApiSummary;
   orders: ApiOrder[];
 }
+
+const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"] as const;
+
+const PAYMENT_STATUSES = ["paid", "pending", "failed", "refunded"] as const;
 
 const STATUS_CONFIG: Record<Order["status"], { label: string; color: string; icon: React.ReactNode }> = {
   pending:    { label: "Pending",    color: "bg-secondary text-foreground border-border",         icon: <Clock className="w-3 h-3" /> },
@@ -117,6 +133,30 @@ const ORDER_TIMELINE: Record<Order["status"], string[]> = {
 
 const TIMELINE_STEPS = ["pending", "processing", "shipped", "delivered"];
 
+const normalizeOrderStatus = (status: string): Order["status"] => {
+  const normalizedStatus = status.toLowerCase() as Order["status"];
+  return ORDER_STATUSES.includes(normalizedStatus) ? normalizedStatus : "pending";
+};
+
+const normalizePaymentStatus = (status: string): Order["paymentStatus"] | undefined => {
+  const normalizedStatus = status.toLowerCase() as NonNullable<Order["paymentStatus"]>;
+  return PAYMENT_STATUSES.includes(normalizedStatus) ? normalizedStatus : undefined;
+};
+
+const mapApiOrderItems = (items?: ApiOrderItem[]): OrderItem[] => {
+  if (!items?.length) {
+    return [];
+  }
+
+  return items.map((item, index) => ({
+    name: item.product_name || item.name || `Item ${index + 1}`,
+    sku: item.sku || `ITEM-${index + 1}`,
+    qty: Number(item.quantity ?? item.qty ?? 1),
+    price: Number(item.price ?? 0),
+    image: item.product_image || item.image || undefined,
+  }));
+};
+
 const StatusBadge = ({ status }: { status: Order["status"] }) => {
   const cfg = STATUS_CONFIG[status];
   return (
@@ -135,59 +175,72 @@ const OrdersTable = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPayment, setFilterPayment] = useState<string>("all");
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [viewOrderLoading, setViewOrderLoading] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+  const loadOrders = async () => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders");
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      const apiData: ApiResponse = await response.json();
+      console.log("API Orders response:", apiData);
+      console.log("First order items:", apiData.orders[0]?.items);
+      setSummary(apiData.summary);
+
+      const transformedOrders: Order[] = apiData.orders.map((apiOrder) => {
+        const itemDetails = mapApiOrderItems(apiOrder.items);
+
+        return {
+        id: apiOrder.order_number,
+        numericId: apiOrder.id,
+        customer: apiOrder.customer_name,
+        email: apiOrder.customer_email,
+        phone: apiOrder.customer_phone,
+        items: itemDetails.reduce((count, item) => count + item.qty, 0) || 1,
+        itemDetails,
+        total: Number(apiOrder.total),
+        subtotal: Number(apiOrder.subtotal),
+        shipping: Number(apiOrder.shipping_cost),
+        status: normalizeOrderStatus(apiOrder.status),
+        paymentMethod: apiOrder.payment_method.toUpperCase(),
+        paymentStatus: normalizePaymentStatus(apiOrder.payment_status),
+        date: new Date(apiOrder.created_at).toISOString().split("T")[0],
+        address: apiOrder.address_line1 + (apiOrder.address_line2 ? `, ${apiOrder.address_line2}` : ""),
+        city: apiOrder.city,
+        state: apiOrder.state,
+        pincode: apiOrder.pincode,
+        };
+      });
+
+      setOrders(transformedOrders);
+      setViewOrder(currentViewOrder => {
+        if (!currentViewOrder) {
+          return null;
         }
 
-        const apiData: ApiResponse = await response.json();
-        
-        // Set summary data
-        setSummary(apiData.summary);
-        
-        // Transform API data to Order interface
-        const transformedOrders: Order[] = apiData.orders.map((apiOrder) => ({
-          id: apiOrder.order_number,
-          numericId: apiOrder.id,
-          customer: apiOrder.customer_name,
-          email: apiOrder.customer_email,
-          phone: apiOrder.customer_phone,
-          items: 1,
-          total: Number(apiOrder.total),
-          subtotal: Number(apiOrder.subtotal),
-          shipping: Number(apiOrder.shipping_cost),
-          status: apiOrder.status as Order["status"],
-          paymentMethod: apiOrder.payment_method.toUpperCase(),
-          paymentStatus: apiOrder.payment_status as Order["paymentStatus"],
-          date: new Date(apiOrder.created_at).toISOString().split("T")[0],
-          address: apiOrder.address_line1 + (apiOrder.address_line2 ? `, ${apiOrder.address_line2}` : ""),
-          city: apiOrder.city,
-          state: apiOrder.state,
-          pincode: apiOrder.pincode,
-        }));
+        return transformedOrders.find(order => order.id === currentViewOrder.id) || null;
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setOrders(transformedOrders);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+  useEffect(() => {
+    void loadOrders();
   }, []);
 
   const filtered = orders.filter(o => {
@@ -233,9 +286,7 @@ const OrdersTable = () => {
         throw new Error("Failed to update order status");
       }
 
-      // Update local state after successful API call
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-      if (viewOrder?.id === orderId) setViewOrder(prev => prev ? { ...prev, status } : null);
+      await loadOrders();
       toast({ title: "Order updated", description: `Order ${orderId} marked as ${status}` });
     } catch (error) {
       toast({ 
@@ -246,9 +297,49 @@ const OrdersTable = () => {
     }
   };
 
-  const handleTrackingUpdate = (orderId: string, tracking: string) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, trackingNumber: tracking } : o));
-    if (viewOrder?.id === orderId) setViewOrder(prev => prev ? { ...prev, trackingNumber: tracking } : null);
+  const fetchOrderDetails = async (order: Order) => {
+    if (!order.numericId) {
+      setViewOrder(order);
+      return;
+    }
+    
+    setViewOrderLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/${order.numericId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch order details");
+      }
+
+      const detailedOrder: ApiOrder = await response.json();
+      console.log("Detailed order response:", detailedOrder);
+      
+      // Merge detailed data with existing order
+      const itemDetails = mapApiOrderItems(detailedOrder.items);
+      const enhancedOrder: Order = {
+        ...order,
+        itemDetails: itemDetails.length > 0 ? itemDetails : order.itemDetails,
+        items: itemDetails.reduce((count, item) => count + item.qty, 0) || order.items,
+        subtotal: Number(detailedOrder.subtotal) || order.subtotal,
+        total: Number(detailedOrder.total) || order.total,
+        shipping: Number(detailedOrder.shipping_cost) || order.shipping,
+        notes: detailedOrder.notes || order.notes,
+      };
+      
+      setViewOrder(enhancedOrder);
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      // Fall back to basic order data
+      setViewOrder(order);
+    } finally {
+      setViewOrderLoading(false);
+    }
   };
 
   if (loading) {
@@ -335,7 +426,7 @@ const OrdersTable = () => {
           </TableHeader>
           <TableBody>
             {filtered.map(order => (
-              <>
+              <Fragment key={order.id}>
                 <TableRow key={order.id} className="group">
                   <TableCell>
                     <button
@@ -380,7 +471,7 @@ const OrdersTable = () => {
                     </Select>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewOrder(order)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => fetchOrderDetails(order)}>
                       <Eye className="w-3.5 h-3.5" />
                     </Button>
                   </TableCell>
@@ -437,7 +528,7 @@ const OrdersTable = () => {
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             ))}
             {filtered.length === 0 && (
               <TableRow>
@@ -451,7 +542,7 @@ const OrdersTable = () => {
       </div>
 
       {/* Full Order Detail Dialog */}
-      <Dialog open={!!viewOrder} onOpenChange={() => setViewOrder(null)}>
+      <Dialog open={!!viewOrder || viewOrderLoading} onOpenChange={() => { setViewOrder(null); setViewOrderLoading(false); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between pr-8">
@@ -463,7 +554,13 @@ const OrdersTable = () => {
             </div>
           </DialogHeader>
 
-          {viewOrder && (
+          {viewOrderLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          
+          {viewOrder && !viewOrderLoading && (
             <div className="space-y-5 text-sm">
               {/* Order Timeline */}
               <div className="bg-secondary/30 rounded-lg p-4">
@@ -495,6 +592,39 @@ const OrdersTable = () => {
                       );
                     })}
                   </div>
+                )}
+              </div>
+
+              {/* Order Items - Moved up for visibility */}
+              <div className="bg-secondary/20 rounded-lg p-4 space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ordered Items</p>
+                {viewOrder.itemDetails && viewOrder.itemDetails.length > 0 ? (
+                  <div className="space-y-3">
+                    {viewOrder.itemDetails.map((item, index) => (
+                      <div key={`${item.sku}-${index}`} className="flex items-center gap-3 rounded-lg border border-border bg-background/80 p-3">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-secondary">
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                              <Package className="h-5 w-5" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">SKU: {item.sku}</p>
+                          <p className="text-xs text-muted-foreground">Quantity: {item.qty}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-foreground">{formatPrice(item.price)}</p>
+                          <p className="text-xs text-muted-foreground">Line total: {formatPrice(item.price * item.qty)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Order items are not available from the current API response.</p>
                 )}
               </div>
 
@@ -574,35 +704,6 @@ const OrdersTable = () => {
                     <span>Total</span>
                     <span>{formatPrice(viewOrder.total)}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Tracking + Status Update */}
-              <div className="bg-secondary/20 rounded-lg p-4 space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Shipment & Status</p>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Tracking number (e.g. BD123456789IN)"
-                    defaultValue={viewOrder.trackingNumber || ""}
-                    className="flex-1 text-xs h-8"
-                    onChange={e => handleTrackingUpdate(viewOrder.id, e.target.value)}
-                  />
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Truck className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground">Change Status:</p>
-                  <Select value={viewOrder.status} onValueChange={(v) => handleStatusChange(viewOrder.id, v as Order["status"])}>
-                    <SelectTrigger className="flex-1 h-8 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                        <SelectItem key={key} value={key} className="text-xs">
-                          <span className="flex items-center gap-1.5">{cfg.icon} {cfg.label}</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 

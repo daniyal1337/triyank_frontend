@@ -3,6 +3,7 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
+const TOAST_AUTO_DISMISS_DELAY = 3000;
 const TOAST_REMOVE_DELAY = 1000000;
 
 type ToasterToast = ToastProps & {
@@ -51,6 +52,7 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const toastDismissTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
@@ -142,7 +144,15 @@ function toast({ ...props }: Toast) {
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     });
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+  const dismiss = () => {
+    const dismissTimeout = toastDismissTimeouts.get(id);
+    if (dismissTimeout) {
+      clearTimeout(dismissTimeout);
+      toastDismissTimeouts.delete(id);
+    }
+
+    dispatch({ type: "DISMISS_TOAST", toastId: id });
+  };
 
   dispatch({
     type: "ADD_TOAST",
@@ -155,6 +165,12 @@ function toast({ ...props }: Toast) {
       },
     },
   });
+
+  const dismissTimeout = setTimeout(() => {
+    dismiss();
+  }, props.duration ?? TOAST_AUTO_DISMISS_DELAY);
+
+  toastDismissTimeouts.set(id, dismissTimeout);
 
   return {
     id: id,

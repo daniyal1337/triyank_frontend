@@ -19,7 +19,7 @@ const WhatsAppFloatingButton = () => {
   }, []);
 
   const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent("Hi! I'm interested in Triyank Jewelry.")}`;
+    const whatsappUrl = `https://wa.me/919967676817?text=${encodeURIComponent("Hi! I'm interested in Triyank Jewelry.")}`;
     window.open(whatsappUrl, "_blank");
   };
 

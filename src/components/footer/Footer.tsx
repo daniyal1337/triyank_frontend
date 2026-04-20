@@ -15,14 +15,9 @@ const Footer = () => {
             {/* Contact Information - with slightly darker background */}
             <div className="p-4 rounded-lg space-y-2 text-sm font-light text-white/90" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
               <div>
-                <p className="font-normal text-white mb-1">Visit Us</p>
-                <p>Karol Bagh, New Delhi</p>
-                <p>India - 110005</p>
-              </div>
-              <div>
-                <p className="font-normal text-white mb-1 mt-3">Contact</p>
-                <p>+91 98765 43210</p>
-                <p>hello@triyank.com</p>
+                <p className="font-normal text-white mb-1">Contact</p>
+                <p>+91 9967676817</p>
+                <p>triyankweb@gmail.com</p>
               </div>
             </div>
           </div>
@@ -60,7 +55,7 @@ const Footer = () => {
               <ul className="space-y-2">
                 <li><Link to="/about/our-story" className="text-sm font-light text-white/70 hover:text-white transition-colors">Our Story</Link></li>
                 <li><Link to="/about/sustainability" className="text-sm font-light text-white/70 hover:text-white transition-colors">Sustainability</Link></li>
-                <li><Link to="/about/store-locator" className="text-sm font-light text-white/70 hover:text-white transition-colors">Store Locator</Link></li>
+
               </ul>
             </div>
           </div>

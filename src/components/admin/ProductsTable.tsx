@@ -49,52 +49,51 @@ const ProductsTable = () => {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+  const loadProducts = async () => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
-
-        const apiProducts: ApiProduct[] = await response.json();
-
-        // Transform API data to Product interface
-        const transformedProducts: Product[] = apiProducts.map((apiProduct) => ({
-          id: String(apiProduct.id),
-          name: apiProduct.name,
-          sku: apiProduct.slug.toUpperCase().replace(/-/g, "_"),
-          price: Number(apiProduct.price),
-          image: apiProduct.main_image,
-          category: apiProduct.category,
-          collection: apiProduct.collection_type as CollectionType,
-          description: apiProduct.description,
-          material: apiProduct.material,
-          occasion: apiProduct.occasion,
-          weight: apiProduct.weight,
-          stock: apiProduct.stock,
-          isFeatured: apiProduct.is_featured === 1,
-          status: "active",
-          createdAt: apiProduct.created_at.split("T")[0],
-          updatedAt: apiProduct.updated_at.split("T")[0],
-        }));
-
-        setProducts(transformedProducts);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
       }
-    };
 
-    fetchProducts();
+      const apiProducts: ApiProduct[] = await response.json();
+      const transformedProducts: Product[] = apiProducts.map((apiProduct) => ({
+        id: String(apiProduct.id),
+        name: apiProduct.name,
+        sku: apiProduct.slug.toUpperCase().replace(/-/g, "_"),
+        price: Number(apiProduct.price),
+        image: apiProduct.main_image,
+        category: apiProduct.category,
+        collection: apiProduct.collection_type as CollectionType,
+        description: apiProduct.description,
+        material: apiProduct.material,
+        occasion: apiProduct.occasion,
+        weight: apiProduct.weight,
+        stock: apiProduct.stock,
+        isFeatured: apiProduct.is_featured === 1,
+        status: "active",
+        createdAt: apiProduct.created_at.split("T")[0],
+        updatedAt: apiProduct.updated_at.split("T")[0],
+      }));
+
+      setProducts(transformedProducts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadProducts();
   }, []);
 
   const filtered = products.filter(p => {
@@ -158,29 +157,7 @@ const ProductsTable = () => {
           throw new Error("Failed to update product");
         }
 
-        const updatedProduct: ApiProduct = await response.json();
-        
-        // Transform the returned API product to Product interface
-        const transformedProduct: Product = {
-          id: String(updatedProduct.id),
-          name: updatedProduct.name,
-          sku: (updatedProduct.slug || updatedProduct.name?.toLowerCase().replace(/\s+/g, "-") || product.sku).toUpperCase().replace(/-/g, "_"),
-          price: Number(updatedProduct.price),
-          image: updatedProduct.main_image,
-          category: updatedProduct.category,
-          collection: updatedProduct.collection_type as CollectionType,
-          description: updatedProduct.description,
-          material: updatedProduct.material,
-          occasion: updatedProduct.occasion,
-          weight: updatedProduct.weight,
-          stock: updatedProduct.stock,
-          isFeatured: updatedProduct.is_featured === 1,
-          status: "active",
-          createdAt: updatedProduct.created_at?.split("T")[0] || product.createdAt || new Date().toISOString().split("T")[0],
-          updatedAt: updatedProduct.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0],
-        };
-
-        setProducts(prev => prev.map(p => p.id === product.id ? transformedProduct : p));
+        await loadProducts();
         toast({ title: "Product updated", description: `${product.name} has been updated.` });
       } else {
         // For new product, call POST API
@@ -210,29 +187,7 @@ const ProductsTable = () => {
           throw new Error("Failed to add product");
         }
 
-        const newProduct: ApiProduct = await response.json();
-        
-        // Transform the returned API product to Product interface
-        const transformedProduct: Product = {
-          id: String(newProduct.id),
-          name: newProduct.name,
-          sku: (newProduct.slug || newProduct.name?.toLowerCase().replace(/\s+/g, "-") || product.sku).toUpperCase().replace(/-/g, "_"),
-          price: Number(newProduct.price),
-          image: newProduct.main_image,
-          category: newProduct.category,
-          collection: newProduct.collection_type as CollectionType,
-          description: newProduct.description,
-          material: newProduct.material,
-          occasion: newProduct.occasion,
-          weight: newProduct.weight,
-          stock: newProduct.stock,
-          isFeatured: newProduct.is_featured === 1,
-          status: "active",
-          createdAt: newProduct.created_at?.split("T")[0] || new Date().toISOString().split("T")[0],
-          updatedAt: newProduct.updated_at?.split("T")[0] || new Date().toISOString().split("T")[0],
-        };
-
-        setProducts(prev => [...prev, transformedProduct]);
+        await loadProducts();
         toast({ title: "Product added", description: `${product.name} has been added.` });
       }
       setEditProduct(null);
@@ -261,7 +216,7 @@ const ProductsTable = () => {
         throw new Error("Failed to delete product");
       }
 
-      setProducts(prev => prev.filter(p => p.id !== id));
+      await loadProducts();
       toast({ title: "Product deleted", description: `${name} has been removed.` });
     } catch (error) {
       toast({

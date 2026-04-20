@@ -30,7 +30,7 @@ const WhatsAppSubscribePopup = () => {
   };
 
   const handleSubscribe = () => {
-    const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent("Hi! I want to subscribe to deals and offers.")}`;
+    const whatsappUrl = `https://wa.me/919967676817?text=${encodeURIComponent("Hi! I want to subscribe to deals and offers.")}`;
     window.open(whatsappUrl, "_blank");
     localStorage.setItem("whatsapp-subscribed", "true");
     handleClose();

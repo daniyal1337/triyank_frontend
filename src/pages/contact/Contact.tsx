@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock, Send, Instagram, Facebook, MessageCircle } from "lucide-react";
+import { Phone, Mail, Clock, Send, Instagram, Facebook, MessageCircle } from "lucide-react";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
 import { Button } from "@/components/ui/button";
@@ -73,20 +73,14 @@ const Contact = () => {
     {
       icon: Phone,
       title: "Phone",
-      details: ["+91 98765 43210"],
+      details: ["+91 9967676817"],
       description: "Mon-Sat, 10am - 7pm"
     },
     {
       icon: Mail,
       title: "Email",
-      details: ["hello@triyank.com"],
+      details: ["triyankweb@gmail.com"],
       description: "We reply within 24 hours"
-    },
-    {
-      icon: MapPin,
-      title: "Visit Us",
-      details: ["123 Jewelry Lane, Mumbai"],
-      description: "Maharashtra, India - 400001"
     },
     {
       icon: Clock,
@@ -123,7 +117,7 @@ const Contact = () => {
       {/* Contact Info Cards */}
       <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {contactInfo.map((info, index) => (
               <motion.div
                 key={info.title}
@@ -131,16 +125,16 @@ const Contact = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white rounded-lg p-6 border border-border hover:shadow-lg transition-shadow duration-300 text-center"
+                className="bg-white rounded-xl p-10 border border-border hover:shadow-lg transition-shadow duration-300 text-center"
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                  <info.icon className="w-6 h-6 text-primary" />
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+                  <info.icon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">{info.title}</h3>
+                <h3 className="text-xl font-medium text-foreground mb-3">{info.title}</h3>
                 {info.details.map((detail, i) => (
-                  <p key={i} className="text-foreground font-medium">{detail}</p>
+                  <p key={i} className="text-foreground font-medium text-lg">{detail}</p>
                 ))}
-                <p className="text-sm text-muted-foreground mt-2">{info.description}</p>
+                <p className="text-sm text-muted-foreground mt-3">{info.description}</p>
               </motion.div>
             ))}
           </div>
@@ -255,21 +249,12 @@ const Contact = () => {
               viewport={{ once: true }}
               className="space-y-8"
             >
-              {/* Map Placeholder */}
-              <div className="bg-white rounded-lg overflow-hidden border border-border h-[300px] flex items-center justify-center">
-                <div className="text-center p-8">
-                  <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <p className="text-lg font-medium text-foreground">Triyank Store Location</p>
-                  <p className="text-muted-foreground">123 Jewelry Lane, Mumbai, Maharashtra</p>
-                  <a
-                    href="https://maps.google.com/?q=Mumbai,India"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-4 text-primary hover:underline"
-                  >
-                    View on Google Maps
-                  </a>
-                </div>
+              {/* Additional Info */}
+              <div className="bg-white rounded-lg p-8 border border-border flex flex-col items-center justify-center text-center space-y-4">
+                <Phone className="w-10 h-10 text-primary" />
+                <h3 className="text-lg font-medium text-foreground">Reach Us Directly</h3>
+                <p className="text-foreground font-medium">+91 9967676817</p>
+                <p className="text-foreground font-medium">triyankweb@gmail.com</p>
               </div>
 
               {/* Social Links */}
@@ -298,7 +283,7 @@ const Contact = () => {
                     <Facebook className="w-5 h-5 text-[#1877F2]" />
                   </a>
                   <a
-                    href={`https://wa.me/919876543210?text=${encodeURIComponent("Hi! I'm interested in Triyank Jewelry.")}`}
+                    href={`https://wa.me/919967676817?text=${encodeURIComponent("Hi! I'm interested in Triyank Jewelry.")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center hover:bg-[#25D366]/20 transition-colors"
