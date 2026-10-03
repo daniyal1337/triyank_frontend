@@ -9,6 +9,7 @@ import {
   MessageCircle,
   LogOut,
   ChevronLeft,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,19 +18,21 @@ interface AdminSidebarProps {
   onTabChange: (tab: string) => void;
   collapsed: boolean;
   onToggle: () => void;
+  onLogout: () => void;
 }
 
 const navItems = [
   { id: "dashboard", label: "Home", icon: Home },
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "products", label: "Products", icon: Tag },
+  { id: "returns", label: "Returns", icon: RotateCcw },
   { id: "feedback", label: "Feedback", icon: MessageCircle },
   { id: "contact", label: "Contact", icon: MessageSquare },
   { id: "analytics", label: "Analytics", icon: BarChart2 },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle }: AdminSidebarProps) => {
+const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle, onLogout }: AdminSidebarProps) => {
   return (
     <aside
       className={cn(
@@ -67,14 +70,21 @@ const AdminSidebar = ({ activeTab, onTabChange, collapsed, onToggle }: AdminSide
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-muted-foreground/20">
+      <div className="p-2 border-t border-muted-foreground/20 space-y-1">
         <Link
           to="/"
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground/80 font-medium hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground transition-colors"
         >
-          <LogOut className="w-4 h-4 shrink-0" />
+          <Home className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Back to Store</span>}
         </Link>
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {!collapsed && <span>Logout</span>}
+        </button>
       </div>
     </aside>
   );

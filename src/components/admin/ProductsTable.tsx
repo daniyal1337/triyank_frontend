@@ -68,9 +68,13 @@ const ProductsTable = () => {
       const transformedProducts: Product[] = apiProducts.map((apiProduct) => ({
         id: String(apiProduct.id),
         name: apiProduct.name,
-        sku: apiProduct.slug.toUpperCase().replace(/-/g, "_"),
+        sku: apiProduct.slug ? apiProduct.slug.toUpperCase().replace(/-/g, "_") : `PRD_${apiProduct.id}`,
         price: Number(apiProduct.price),
-        image: apiProduct.main_image,
+        image: apiProduct.main_image 
+          ? (apiProduct.main_image.startsWith('http') || apiProduct.main_image.startsWith('data:')
+            ? apiProduct.main_image 
+            : `${import.meta.env.VITE_BACKEND_API_URL}${apiProduct.main_image}`)
+          : "/placeholder.svg",
         category: apiProduct.category,
         collection: apiProduct.collection_type as CollectionType,
         description: apiProduct.description,
@@ -80,8 +84,8 @@ const ProductsTable = () => {
         stock: apiProduct.stock,
         isFeatured: apiProduct.is_featured === 1,
         status: "active",
-        createdAt: apiProduct.created_at.split("T")[0],
-        updatedAt: apiProduct.updated_at.split("T")[0],
+        createdAt: apiProduct.created_at ? apiProduct.created_at.split("T")[0] : "",
+        updatedAt: apiProduct.updated_at ? apiProduct.updated_at.split("T")[0] : "",
       }));
 
       setProducts(transformedProducts);
@@ -125,19 +129,38 @@ const ProductsTable = () => {
     );
   }
 
-  const handleSave = async (product: Product) => {
+  const handleSave = async (product: Product, imageFile?: File) => {
     try {
       const token = localStorage.getItem("token");
       
       if (editProduct) {
         // For editing, call PUT API
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products/${product.id}`, {
-          method: "PUT",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        let body: FormData | string;
+        let headers: Record<string, string> = {
+          "Authorization": `Bearer ${token}`,
+        };
+
+        if (imageFile) {
+          // Use FormData for file upload
+          const formData = new FormData();
+          formData.append("main_image", imageFile);
+          formData.append("name", product.name);
+          formData.append("slug", product.sku.toLowerCase().replace(/_/g, "-"));
+          formData.append("price", String(product.price));
+          formData.append("description", product.description);
+          formData.append("category", product.category);
+          formData.append("collection_type", product.collection);
+          formData.append("material", product.material || "");
+          formData.append("occasion", product.occasion || "");
+          formData.append("weight", product.weight || "");
+          formData.append("stock", String(product.stock));
+          formData.append("is_featured", String(product.isFeatured ? 1 : 0));
+          body = formData;
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        } else {
+          // Use JSON for URL-based images
+          headers["Content-Type"] = "application/json";
+          body = JSON.stringify({
             name: product.name,
             slug: product.sku.toLowerCase().replace(/_/g, "-"),
             price: product.price,
@@ -150,7 +173,13 @@ const ProductsTable = () => {
             weight: product.weight,
             stock: product.stock,
             is_featured: product.isFeatured ? 1 : 0,
-          }),
+          });
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products/${product.id}`, {
+          method: "PUT",
+          headers,
+          body,
         });
 
         if (!response.ok) {
@@ -161,13 +190,32 @@ const ProductsTable = () => {
         toast({ title: "Product updated", description: `${product.name} has been updated.` });
       } else {
         // For new product, call POST API
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        let body: FormData | string;
+        let headers: Record<string, string> = {
+          "Authorization": `Bearer ${token}`,
+        };
+
+        if (imageFile) {
+          // Use FormData for file upload
+          const formData = new FormData();
+          formData.append("main_image", imageFile);
+          formData.append("name", product.name);
+          formData.append("slug", product.sku.toLowerCase().replace(/_/g, "-"));
+          formData.append("price", String(product.price));
+          formData.append("description", product.description);
+          formData.append("category", product.category);
+          formData.append("collection_type", product.collection);
+          formData.append("material", product.material || "");
+          formData.append("occasion", product.occasion || "");
+          formData.append("weight", product.weight || "");
+          formData.append("stock", String(product.stock));
+          formData.append("is_featured", String(product.isFeatured ? 1 : 0));
+          body = formData;
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        } else {
+          // Use JSON for URL-based images
+          headers["Content-Type"] = "application/json";
+          body = JSON.stringify({
             name: product.name,
             slug: product.sku.toLowerCase().replace(/_/g, "-"),
             price: product.price,
@@ -180,7 +228,13 @@ const ProductsTable = () => {
             weight: product.weight,
             stock: product.stock,
             is_featured: product.isFeatured ? 1 : 0,
-          }),
+          });
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/products`, {
+          method: "POST",
+          headers,
+          body,
         });
 
         if (!response.ok) {

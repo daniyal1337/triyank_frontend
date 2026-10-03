@@ -35,7 +35,7 @@ interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product | null;
-  onSave: (product: Product) => void;
+  onSave: (product: Product, imageFile?: File) => void;
 }
 
 const emptyProduct: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
@@ -69,16 +69,21 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
   const [urlInput, setUrlInput] = useState("");
   const [activeImageTab, setActiveImageTab] = useState<"url" | "upload">("url");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (product) {
       setForm({ ...product });
+      setImagePreview(product.image || "");
     } else {
       setForm({ ...emptyProduct });
+      setImagePreview("");
     }
     setTagInput("");
     setUrlInput("");
+    setImageFile(null);
   }, [product, open]);
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
@@ -101,30 +106,53 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
     update("image", newImages[0]);
     update("images", newImages.slice(1));
     setUrlInput("");
+    setImageFile(null); // Clear file when using URL
+    setImagePreview(url);
     toast({ title: "Image added" });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target?.result as string;
-        if (!dataUrl) return;
-        const newImages = [...allImages, dataUrl];
-        update("image", newImages[0]);
-        update("images", newImages.slice(1));
-      };
-      reader.readAsDataURL(file);
-    });
+    if (files.length === 0) return;
+
+    const file = files[0];
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Invalid file type", description: "Please upload PNG, JPG, or WEBP images only.", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({ title: "File too large", description: "Please upload images smaller than 10MB.", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setImageFile(file);
+    setImagePreview(previewUrl);
+    update("image", previewUrl);
+    update("images", []);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
-    toast({ title: `${files.length} image${files.length > 1 ? "s" : ""} uploaded` });
+    toast({ title: "Image uploaded", description: "Ready to save product with image." });
   };
 
   const removeImage = (index: number) => {
     const newImages = allImages.filter((_, i) => i !== index);
     update("image", newImages[0] || "/placeholder.svg");
     update("images", newImages.slice(1));
+    // Clear file and preview if removing the only image
+    if (newImages.length === 0) {
+      setImageFile(null);
+      setImagePreview("");
+    }
   };
 
   const setAsPrimary = (index: number) => {
@@ -159,7 +187,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       price: form.price || 0,
       originalPrice: form.originalPrice,
       costPrice: form.costPrice,
-      image: form.image || "/placeholder.svg",
+      image: imagePreview || form.image || "/placeholder.svg",
       images: form.images || [],
       category: form.category || "Uncategorized",
       collection: (form.collection as CollectionType) || "western",
@@ -179,7 +207,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       createdAt: product?.createdAt || now,
       updatedAt: now,
     };
-    onSave(saved);
+    onSave(saved, imageFile || undefined);
     onOpenChange(false);
   };
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Target, Eye, ChevronDown, Sparkles, Shield, Award } from "lucide-react";
+import { Heart, Target, ChevronDown, Sparkles, Shield, Award } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 
 const pillars = [
@@ -36,18 +36,7 @@ const storySections = [
       "To create a sustainable future for fashion by transforming discarded materials into handcrafted masterpieces. We aim to empower unemployed women through skill-building and fair opportunities, ensuring that TRIYANK remains a brand built by the community, for the community.",
     ],
   },
-  {
-    id: "vision",
-    icon: Eye,
-    title: "Our Vision",
-    accentColor: "text-emerald-700",
-    bgAccent: "bg-emerald-50",
-    borderAccent: "border-emerald-200",
-    heading: "A Global Leader in Conscious Jewelry",
-    body: [
-      "To become a global leader in conscious jewelry, known for our \"Pillar of Three\" philosophy. We envision a world where every woman is celebrated through our designs, and where the bond between the creator, the craft, and the wearer creates a more beautiful, inclusive world.",
-    ],
-  },
+
 ];
 
 const About = () => {

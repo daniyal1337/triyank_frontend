@@ -8,6 +8,7 @@ import OrdersTable, { Order } from "@/components/admin/OrdersTable";
 import AnalyticsDashboard from "@/components/admin/AnalyticsDashboard";
 import FeedbackTable from "@/components/admin/FeedbackTable";
 import ContactTable from "@/components/admin/ContactTable";
+import ReturnItemsTable from "@/components/admin/ReturnItemsTable";
 import AdminLogin from "./AdminLogin";
 import { cn } from "@/lib/utils";
 
@@ -23,11 +24,16 @@ const mockOrders: Order[] = [
 ];
 
 const AdminDashboard = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [products, setProducts] = useState<Product[]>(allProducts);
   const [orders, setOrders] = useState<Order[]>(mockOrders);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+  };
 
   if (!isAuthenticated) {
     return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
@@ -40,6 +46,7 @@ const AdminDashboard = () => {
         onTabChange={setActiveTab}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onLogout={handleLogout}
       />
 
       <main className={cn("transition-all duration-300 min-h-screen flex flex-col", sidebarCollapsed ? "ml-16" : "ml-60")}>
@@ -131,6 +138,10 @@ const AdminDashboard = () => {
 
           {activeTab === "contact" && (
             <ContactTable />
+          )}
+
+          {activeTab === "returns" && (
+            <ReturnItemsTable />
           )}
 
           {activeTab === "discounts" && (

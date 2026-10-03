@@ -14,7 +14,6 @@ const Contact = () => {
     name: "",
     email: "",
     phone: "",
-    subject: "",
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +37,7 @@ const Contact = () => {
         body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim(),
+          contact_number: formData.phone.trim(),
           message: formData.message.trim(),
         }),
       });
@@ -55,7 +55,6 @@ const Contact = () => {
         name: "",
         email: "",
         phone: "",
-        subject: "",
         message: ""
       });
     } catch {
@@ -185,30 +184,16 @@ const Contact = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">Phone Number</label>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+91 98765 43210"
-                      className="bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">Subject *</label>
-                    <Input
-                      type="text"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      required
-                      placeholder="How can we help?"
-                      className="bg-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">Phone Number</label>
+                  <Input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+91 98765 43210"
+                    className="bg-white"
+                  />
                 </div>
                 
                 <div>

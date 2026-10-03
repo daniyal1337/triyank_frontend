@@ -5,6 +5,7 @@ type ContactRow = {
   _id?: string;
   name: string;
   email: string;
+  contact_number?: string;
   message: string;
   createdAt?: string;
 };
@@ -88,6 +89,7 @@ const ContactTable = () => {
                 <tr className="text-left text-muted-foreground border-b border-border">
                   <th className="py-3 pr-4 font-semibold">Name</th>
                   <th className="py-3 pr-4 font-semibold">Email</th>
+                  <th className="py-3 pr-4 font-semibold">Contact Number</th>
                   <th className="py-3 pr-4 font-semibold">Message</th>
                   <th className="py-3 pr-0 font-semibold">Date</th>
                 </tr>
@@ -97,6 +99,7 @@ const ContactTable = () => {
                   <tr key={it.id || it._id || idx} className="border-b border-border last:border-b-0">
                     <td className="py-3 pr-4 font-medium text-foreground whitespace-nowrap">{it.name}</td>
                     <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">{it.email}</td>
+                    <td className="py-3 pr-4 text-muted-foreground whitespace-nowrap">{it.contact_number || "-"}</td>
                     <td className="py-3 pr-4 text-muted-foreground min-w-[360px]">{it.message}</td>
                     <td className="py-3 pr-0 text-muted-foreground whitespace-nowrap">
                       {it.createdAt ? new Date(it.createdAt).toLocaleString() : "-"}

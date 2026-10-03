@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Send } from "lucide-react";
 
 const ContactUs = () => {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", contact_number: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const apiBaseUrl = (import.meta.env.VITE_BACKEND_API_URL as string | undefined) || "";
@@ -15,7 +15,7 @@ const ContactUs = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.message) return;
+    if (!form.name || !form.email || !form.contact_number || !form.message) return;
 
     try {
       setIsSubmitting(true);
@@ -27,6 +27,7 @@ const ContactUs = () => {
         body: JSON.stringify({
           name: form.name.trim(),
           email: form.email.trim(),
+          contact_number: form.contact_number.trim(),
           message: form.message.trim(),
         }),
       });
@@ -36,7 +37,7 @@ const ContactUs = () => {
       }
 
       toast.success("Thank you for reaching out! We'll get back to you soon.");
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", contact_number: "", message: "" });
     } catch {
       toast.error("Could not send message. Please try again.");
     } finally {
@@ -79,6 +80,17 @@ const ContactUs = () => {
                 className="bg-transparent border-background/30 text-background placeholder:text-background/50 focus:border-background"
                 required
                 maxLength={255}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Input
+                type="tel"
+                placeholder="Your contact number"
+                value={form.contact_number}
+                onChange={(e) => setForm({ ...form, contact_number: e.target.value })}
+                className="bg-transparent border-background/30 text-background placeholder:text-background/50 focus:border-background"
+                required
+                maxLength={20}
               />
             </div>
             <Textarea

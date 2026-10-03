@@ -4,6 +4,7 @@ import {
   RefreshCw, Clock, CreditCard, MapPin, Phone, Mail, User, Loader2,
   ChevronDown, ChevronUp, Download, Filter,
 } from "lucide-react";
+import jsPDF from "jspdf";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/data/products";
 import { useToast } from "@/hooks/use-toast";
+
+const apiBaseUrl = (import.meta.env.VITE_BACKEND_API_URL as string | undefined) || "";
+
 
 export interface OrderItem {
   name: string;
@@ -40,7 +44,7 @@ export interface Order {
   subtotal?: number;
   shipping?: number;
   discount?: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded" | "returned";
   paymentMethod: string;
   paymentStatus?: "paid" | "pending" | "failed" | "refunded";
   date: string;
@@ -74,6 +78,8 @@ interface ApiOrder {
   subtotal: string;
   total: string;
   created_at: string;
+  notes?: string | null;
+  tracking_number?: string | null;
   items?: ApiOrderItem[];
 }
 
@@ -102,41 +108,45 @@ interface ApiResponse {
   orders: ApiOrder[];
 }
 
-const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"] as const;
+const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded", "returned"] as const;
 
 const PAYMENT_STATUSES = ["paid", "pending", "failed", "refunded"] as const;
 
 const STATUS_CONFIG: Record<Order["status"], { label: string; color: string; icon: React.ReactNode }> = {
-  pending:    { label: "Pending",    color: "bg-secondary text-foreground border-border",         icon: <Clock className="w-3 h-3" /> },
-  processing: { label: "Processing", color: "bg-secondary text-primary border-primary/30",        icon: <RefreshCw className="w-3 h-3" /> },
-  shipped:    { label: "Shipped",    color: "bg-accent text-accent-foreground border-border",     icon: <Truck className="w-3 h-3" /> },
-  delivered:  { label: "Delivered",  color: "bg-secondary text-foreground border-border",         icon: <CheckCircle2 className="w-3 h-3" /> },
-  cancelled:  { label: "Cancelled",  color: "bg-destructive/10 text-destructive border-destructive/20", icon: <XCircle className="w-3 h-3" /> },
-  refunded:   { label: "Refunded",   color: "bg-secondary text-muted-foreground border-border",   icon: <RefreshCw className="w-3 h-3" /> },
+  pending: { label: "Pending", color: "bg-secondary text-foreground border-border", icon: <Clock className="w-3 h-3" /> },
+  processing: { label: "Processing", color: "bg-secondary text-primary border-primary/30", icon: <RefreshCw className="w-3 h-3" /> },
+  shipped: { label: "Shipped", color: "bg-accent text-accent-foreground border-border", icon: <Truck className="w-3 h-3" /> },
+  delivered: { label: "Delivered", color: "bg-secondary text-foreground border-border", icon: <CheckCircle2 className="w-3 h-3" /> },
+  cancelled: { label: "Cancelled", color: "bg-destructive/10 text-destructive border-destructive/20", icon: <XCircle className="w-3 h-3" /> },
+  refunded: { label: "Refunded", color: "bg-secondary text-muted-foreground border-border", icon: <RefreshCw className="w-3 h-3" /> },
+  returned: { label: "Returned", color: "bg-orange-100 text-orange-700 border-orange-200", icon: <Package className="w-3 h-3" /> },
 };
 
 const PAYMENT_STATUS_COLOR: Record<string, string> = {
-  paid:     "bg-secondary text-foreground",
-  pending:  "bg-secondary text-muted-foreground",
-  failed:   "bg-destructive/10 text-destructive",
+  paid: "bg-secondary text-foreground",
+  pending: "bg-secondary text-muted-foreground",
+  failed: "bg-destructive/10 text-destructive",
   refunded: "bg-secondary text-muted-foreground",
 };
 
 const ORDER_TIMELINE: Record<Order["status"], string[]> = {
-  pending:    ["pending"],
+  pending: ["pending"],
   processing: ["pending", "processing"],
-  shipped:    ["pending", "processing", "shipped"],
-  delivered:  ["pending", "processing", "shipped", "delivered"],
-  cancelled:  ["pending", "cancelled"],
-  refunded:   ["pending", "processing", "refunded"],
+  shipped: ["pending", "processing", "shipped"],
+  delivered: ["pending", "processing", "shipped", "delivered"],
+  cancelled: ["pending", "cancelled"],
+  refunded: ["pending", "processing", "refunded"],
+  returned: ["pending", "processing", "shipped", "delivered", "returned"],
 };
 
 const TIMELINE_STEPS = ["pending", "processing", "shipped", "delivered"];
 
-const normalizeOrderStatus = (status: string): Order["status"] => {
+const normalizeOrderStatus = (status?: string | null): Order["status"] => {
+  if (!status) return "pending";
   const normalizedStatus = status.toLowerCase() as Order["status"];
   return ORDER_STATUSES.includes(normalizedStatus) ? normalizedStatus : "pending";
 };
+
 
 const normalizePaymentStatus = (status: string): Order["paymentStatus"] | undefined => {
   const normalizedStatus = status.toLowerCase() as NonNullable<Order["paymentStatus"]>;
@@ -144,18 +154,33 @@ const normalizePaymentStatus = (status: string): Order["paymentStatus"] | undefi
 };
 
 const mapApiOrderItems = (items?: ApiOrderItem[]): OrderItem[] => {
-  if (!items?.length) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
     return [];
   }
 
-  return items.map((item, index) => ({
-    name: item.product_name || item.name || `Item ${index + 1}`,
-    sku: item.sku || `ITEM-${index + 1}`,
-    qty: Number(item.quantity ?? item.qty ?? 1),
-    price: Number(item.price ?? 0),
-    image: item.product_image || item.image || undefined,
-  }));
+  return items.map((item, index) => {
+    const rawImage = item.product_image || item.image;
+    let image = undefined;
+
+    if (rawImage && typeof rawImage === 'string') {
+      if (rawImage.startsWith('http') || rawImage.startsWith('data:')) {
+        image = rawImage;
+      } else {
+        const cleanPath = rawImage.startsWith('/') ? rawImage : `/${rawImage}`;
+        image = `${apiBaseUrl}${cleanPath}`;
+      }
+    }
+
+    return {
+      name: item.product_name || item.name || `Item ${index + 1}`,
+      sku: item.sku || `ITEM-${index + 1}`,
+      qty: Number(item.quantity ?? item.qty ?? 1),
+      price: Number(item.price ?? 0),
+      image: image,
+    };
+  });
 };
+
 
 const StatusBadge = ({ status }: { status: Order["status"] }) => {
   const cfg = STATUS_CONFIG[status];
@@ -164,6 +189,253 @@ const StatusBadge = ({ status }: { status: Order["status"] }) => {
       {cfg.icon} {cfg.label}
     </span>
   );
+};
+
+const formatPriceForPDF = (amount: number): string => {
+  return amount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+
+const amountToWords = (num: number): string => {
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  if (num === 0) return "Zero Only";
+  const convert = (n: number): string => {
+    if (n < 20) return ones[n];
+    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+    if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convert(n % 100) : "");
+    if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + convert(n % 1000) : "");
+    if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + convert(n % 100000) : "");
+    return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + convert(n % 10000000) : "");
+  };
+  return convert(num) + " Only";
+};
+
+const downloadInvoicePDF = (order: Order) => {
+  try {
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const contentWidth = pageWidth - 2 * margin;
+    let yPosition = margin;
+
+    // Header - Company Info
+    pdf.setFillColor(51, 51, 51);
+    pdf.rect(0, 0, pageWidth, 18, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(18);
+    pdf.setFont(undefined, "bold");
+    pdf.text("TRIYANK", margin, 10);
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, "normal");
+    pdf.text("Exquisite Jewelry for Every Occasion", margin, 15);
+
+    // Invoice Title - Right Side
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, "bold");
+    pdf.text("INVOICE", pageWidth - margin - 5, 10, { align: "right" });
+
+    // Invoice Number and Date - Right Side
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    pdf.text(`Invoice #: ${order.id}`, pageWidth - margin - 5, 15, { align: "right" });
+    pdf.text(`Date: ${order.date}`, pageWidth - margin - 5, 19, { align: "right" });
+
+    // Sold By - Left Side
+    yPosition = 22;
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, "bold");
+    pdf.setTextColor(0, 0, 0);
+    pdf.text("Sold By:", margin, yPosition);
+    yPosition += 5;
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    pdf.text("Triyank Jewelry", margin, yPosition);
+    yPosition += 4;
+    pdf.text("Contact: +91 9967676817", margin, yPosition);
+    yPosition += 4;
+    pdf.text("Email: triyankweb@gmail.com", margin, yPosition);
+
+    // Addresses Section
+    yPosition = 50;
+
+    // Billing Address - Left Column
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, "bold");
+    pdf.text("Billing Address:", margin, yPosition);
+    yPosition += 5;
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    pdf.text(order.customer, margin, yPosition);
+    yPosition += 4;
+    pdf.text(order.email, margin, yPosition);
+    yPosition += 4;
+    if (order.phone) {
+      pdf.text(order.phone, margin, yPosition);
+    }
+
+    // Shipping Address - Right Column
+    const shipYStart = 50;
+    const rightColX = margin + contentWidth / 2 + 3;
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, "bold");
+    pdf.text("Shipping Address:", rightColX, shipYStart);
+    let shipY = shipYStart + 5;
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    if (order.address) {
+      pdf.text(order.address, rightColX, shipY);
+      shipY += 4;
+    }
+    if (order.city || order.state) {
+      pdf.text(`${order.city || ""}${order.state ? ", " + order.state : ""}`, rightColX, shipY);
+      shipY += 4;
+    }
+    if (order.pincode) {
+      pdf.text(`PIN: ${order.pincode}`, rightColX, shipY);
+    }
+
+    // Items Table
+    yPosition = 72;
+    const tableTop = yPosition;
+
+    // Table Header Background
+    pdf.setFillColor(220, 220, 220);
+    pdf.rect(margin, tableTop - 3, contentWidth, 7, "F");
+
+    // Table Header Text
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "bold");
+    pdf.setTextColor(0, 0, 0);
+    pdf.text("Item Description", margin + 2, tableTop + 2);
+    pdf.text("Qty", margin + 98, tableTop + 2);
+    pdf.text("Unit Price", margin + 113, tableTop + 2);
+    pdf.text("Tax %", margin + 138, tableTop + 2);
+    pdf.text("Total", margin + 158, tableTop + 2);
+
+    yPosition = tableTop + 8;
+
+    // Table Rows
+    pdf.setFont(undefined, "normal");
+    pdf.setFontSize(8);
+    if (order.itemDetails && order.itemDetails.length > 0) {
+      order.itemDetails.forEach((item, idx) => {
+        // Alternate row background
+        if (idx % 2 === 0) {
+          pdf.setFillColor(245, 245, 245);
+          pdf.rect(margin, yPosition - 3, contentWidth, 6, "F");
+        }
+
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(item.name.substring(0, 42), margin + 2, yPosition);
+        pdf.text(item.qty.toString(), margin + 98, yPosition);
+        pdf.text("Rs. " + formatPriceForPDF(item.price), margin + 113, yPosition);
+        pdf.text("0%", margin + 138, yPosition);
+        pdf.text("Rs. " + formatPriceForPDF(item.price * item.qty), margin + 158, yPosition);
+        yPosition += 6;
+      });
+    }
+
+    // Divider
+    yPosition += 2;
+    pdf.setDrawColor(100, 100, 100);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 6;
+
+    // Summary - Right aligned section
+    const summaryStartX = margin + 130;
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    pdf.setTextColor(0, 0, 0);
+
+    // Subtotal
+    if (order.subtotal) {
+      pdf.text("Subtotal:", summaryStartX, yPosition);
+      pdf.text("Rs. " + formatPriceForPDF(order.subtotal), pageWidth - margin - 2, yPosition, { align: "right" });
+      yPosition += 5;
+    }
+
+    // Shipping
+    if (order.shipping !== undefined) {
+      pdf.text("Shipping:", summaryStartX, yPosition);
+      const shippingText = order.shipping === 0 ? "Free" : "Rs. " + formatPriceForPDF(order.shipping);
+      pdf.text(shippingText, pageWidth - margin - 2, yPosition, { align: "right" });
+      yPosition += 5;
+    }
+
+    // Discount
+    if (order.discount) {
+      pdf.setTextColor(200, 0, 0);
+      pdf.text("Discount:", summaryStartX, yPosition);
+      pdf.text("-Rs. " + formatPriceForPDF(order.discount), pageWidth - margin - 2, yPosition, { align: "right" });
+      pdf.setTextColor(0, 0, 0);
+      yPosition += 5;
+    }
+
+    // Total line
+    pdf.setDrawColor(100, 100, 100);
+    pdf.line(summaryStartX - 5, yPosition - 1, pageWidth - margin, yPosition - 1);
+    yPosition += 3;
+
+    // Total
+    pdf.setFont(undefined, "bold");
+    pdf.setFontSize(10);
+    pdf.text("TOTAL:", summaryStartX, yPosition);
+    pdf.text("Rs. " + formatPriceForPDF(order.total), pageWidth - margin - 2, yPosition, { align: "right" });
+    yPosition += 8;
+
+    // Amount in Words
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "normal");
+    pdf.setTextColor(0, 0, 0);
+    const totalInWords = amountToWords(Math.floor(order.total));
+    pdf.text("Amount in Words:", margin, yPosition);
+    yPosition += 4;
+    pdf.text(totalInWords, margin, yPosition);
+
+    yPosition += 8;
+
+    // Payment Information
+    pdf.setFontSize(8);
+    pdf.setFont(undefined, "bold");
+    pdf.text("Payment Information:", margin, yPosition);
+    yPosition += 4;
+    pdf.setFont(undefined, "normal");
+    pdf.text(`Payment Method: ${order.paymentMethod}`, margin, yPosition);
+    yPosition += 4;
+    pdf.text(`Payment Status: ${order.paymentStatus?.toUpperCase() || "PENDING"}`, margin, yPosition);
+
+    if (order.trackingNumber) {
+      yPosition += 4;
+      pdf.text(`Tracking Number: ${order.trackingNumber}`, margin, yPosition);
+    }
+
+    // Footer
+    yPosition = pageHeight - 18;
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 4;
+
+    pdf.setFontSize(7);
+    pdf.setTextColor(128, 128, 128);
+    pdf.text("Thank you for shopping with Triyank! For queries, contact +91 9967676817 or triyankweb@gmail.com", pageWidth / 2, yPosition, { align: "center" });
+    yPosition += 3;
+    pdf.text(`Generated on ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: "center" });
+
+    // Signature line
+    yPosition += 4;
+    pdf.setDrawColor(0, 0, 0);
+    pdf.line(margin + 5, yPosition, margin + 35, yPosition);
+    pdf.setFontSize(7);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text("Authorized Signature", margin + 5, yPosition + 2);
+
+    pdf.save(`Invoice-${order.id}.pdf`);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+  }
 };
 
 const OrdersTable = () => {
@@ -183,7 +455,8 @@ const OrdersTable = () => {
     try {
       setError(null);
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/`, {
+      const response = await fetch(`${apiBaseUrl}/api/orders/`, {
+
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -203,24 +476,26 @@ const OrdersTable = () => {
         const itemDetails = mapApiOrderItems(apiOrder.items);
 
         return {
-        id: apiOrder.order_number,
-        numericId: apiOrder.id,
-        customer: apiOrder.customer_name,
-        email: apiOrder.customer_email,
-        phone: apiOrder.customer_phone,
-        items: itemDetails.reduce((count, item) => count + item.qty, 0) || 1,
-        itemDetails,
-        total: Number(apiOrder.total),
-        subtotal: Number(apiOrder.subtotal),
-        shipping: Number(apiOrder.shipping_cost),
-        status: normalizeOrderStatus(apiOrder.status),
-        paymentMethod: apiOrder.payment_method.toUpperCase(),
-        paymentStatus: normalizePaymentStatus(apiOrder.payment_status),
-        date: new Date(apiOrder.created_at).toISOString().split("T")[0],
-        address: apiOrder.address_line1 + (apiOrder.address_line2 ? `, ${apiOrder.address_line2}` : ""),
-        city: apiOrder.city,
-        state: apiOrder.state,
-        pincode: apiOrder.pincode,
+          id: apiOrder.order_number,
+          numericId: apiOrder.id,
+          customer: apiOrder.customer_name,
+          email: apiOrder.customer_email,
+          phone: apiOrder.customer_phone,
+          items: itemDetails.reduce((count, item) => count + item.qty, 0) || 1,
+          itemDetails,
+          total: Number(apiOrder.total),
+          subtotal: Number(apiOrder.subtotal),
+          shipping: Number(apiOrder.shipping_cost),
+          status: normalizeOrderStatus(apiOrder.status),
+          paymentMethod: apiOrder.payment_method.toUpperCase(),
+          paymentStatus: normalizePaymentStatus(apiOrder.payment_status),
+          date: new Date(apiOrder.created_at).toISOString().split("T")[0],
+          address: apiOrder.address_line1 + (apiOrder.address_line2 ? `, ${apiOrder.address_line2}` : ""),
+          city: apiOrder.city,
+          state: apiOrder.state,
+          pincode: apiOrder.pincode,
+          notes: apiOrder.notes || "",
+          trackingNumber: apiOrder.tracking_number || "",
         };
       });
 
@@ -273,7 +548,8 @@ const OrdersTable = () => {
       }
 
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/${order.numericId}/status`, {
+      const response = await fetch(`${apiBaseUrl}/api/orders/${order.numericId}/status`, {
+
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -289,10 +565,10 @@ const OrdersTable = () => {
       await loadOrders();
       toast({ title: "Order updated", description: `Order ${orderId} marked as ${status}` });
     } catch (error) {
-      toast({ 
-        title: "Update failed", 
-        description: error instanceof Error ? error.message : "Failed to update status", 
-        variant: "destructive" 
+      toast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Failed to update status",
+        variant: "destructive"
       });
     }
   };
@@ -302,11 +578,12 @@ const OrdersTable = () => {
       setViewOrder(order);
       return;
     }
-    
+
     setViewOrderLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/orders/${order.numericId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/orders/${order.numericId}`, {
+
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -319,7 +596,7 @@ const OrdersTable = () => {
 
       const detailedOrder: ApiOrder = await response.json();
       console.log("Detailed order response:", detailedOrder);
-      
+
       // Merge detailed data with existing order
       const itemDetails = mapApiOrderItems(detailedOrder.items);
       const enhancedOrder: Order = {
@@ -330,8 +607,9 @@ const OrdersTable = () => {
         total: Number(detailedOrder.total) || order.total,
         shipping: Number(detailedOrder.shipping_cost) || order.shipping,
         notes: detailedOrder.notes || order.notes,
+        trackingNumber: detailedOrder.tracking_number || order.trackingNumber,
       };
-      
+
       setViewOrder(enhancedOrder);
     } catch (error) {
       console.error("Error fetching order details:", error);
@@ -354,8 +632,8 @@ const OrdersTable = () => {
     return (
       <div className="bg-white dark:bg-card rounded-xl p-8 border border-border shadow-sm text-center">
         <p className="text-red-500">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Retry
@@ -550,7 +828,18 @@ const OrdersTable = () => {
                 <DialogTitle className="text-base font-mono">{viewOrder?.id}</DialogTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">{viewOrder?.date}</p>
               </div>
-              {viewOrder && <StatusBadge status={viewOrder.status} />}
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => viewOrder && downloadInvoicePDF(viewOrder)}
+                  className="gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Invoice
+                </Button>
+                {viewOrder && <StatusBadge status={viewOrder.status} />}
+              </div>
             </div>
           </DialogHeader>
 
@@ -559,7 +848,7 @@ const OrdersTable = () => {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           )}
-          
+
           {viewOrder && !viewOrderLoading && (
             <div className="space-y-5 text-sm">
               {/* Order Timeline */}
